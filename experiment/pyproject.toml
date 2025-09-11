@@ -1,0 +1,35 @@
+[project]
+name = "experiment-app"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "KN Neuron"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mne (>=1.10.0,<2.0.0)",
+    "ipykernel (>=6.30.0,<7.0.0)",
+    "numpy (>=2.3.2,<3.0.0)"
+]
+
+
+[tool.poetry]
+package-mode = false
+
+
+[tool.pyright]
+typeCheckingMode = "strict"
+reportMissingTypeStubs = "none"
+
+
+[tool.poetry.group.dev.dependencies]
+data-acquisition-framework = { path = "../data-acquisition-framework", develop = true }
+black = "^25.1.0"
+isort = "^6.0.1"
+pyright = "^1.1.402"
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

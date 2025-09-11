@@ -1,0 +1,17 @@
+[
+  {
+    "text": "Jutro będzie słoneczna pogoda.",
+    "audio_path": "src/assets/audio/sentence1.mp3",
+    "question": "Jaka będzie jutro pogoda?",
+    "options": ["Deszczowa", "Słoneczna", "Śnieżna"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Pociąg odjeżdża za dziesięć minut.",
+    "audio_path": "src/assets/audio/sentence2.mp3",
+    "question": "Za ile minut odjeżdża pociąg?",
+    "options": ["Pięć", "Dziesięć", "Piętnaście"],
+    "correct_answer_index": 1
+  }
+]
+

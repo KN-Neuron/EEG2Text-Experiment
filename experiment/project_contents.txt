@@ -1,0 +1,1227 @@
+from src.run import run
+
+DO_USE_DEBUG_MODE = True
+DO_USE_MOCK_HEADSET = True
+
+BRAINACCESS_CAP_NAME = "BA MAXI 011"
+
+
+if __name__ == "__main__":
+    run(
+        brainaccess_cap_name=BRAINACCESS_CAP_NAME,
+        do_use_debug_mode=DO_USE_DEBUG_MODE,
+        do_use_mock_headset=DO_USE_MOCK_HEADSET,
+    )
+from pathlib import Path
+
+import mne
+import numpy as np
+
+CHANNELS = [
+    "P8",
+    "O2",
+    "P4",
+    "C4",
+    "F8",
+    "F4",
+    "Oz",
+    "Cz",
+    "Fz",
+    "Pz",
+    "F3",
+    "O1",
+    "P7",
+    "C3",
+    "P3",
+    "F7",
+    "T8",
+    "FC6",
+    "CP6",
+    "CP2",
+    "PO4",
+    "FC2",
+    "AF4",
+    "POz",
+    "AFz",
+    "AF3",
+    "FC1",
+    "FC5",
+    "T7",
+    "CP1",
+    "CP5",
+    "PO3",
+]
+
+VOLTS_IN_MICROVOLT = 10**-6
+LOWPASS_FREQUENCY = 1
+HIGHPASS_FREQUENCY = 50
+SAMPLING_FREQUENCY = 250
+MAX_FREQUENCY = SAMPLING_FREQUENCY // 2
+BANDSTOP_FREQUENCY = np.arange(50, MAX_FREQUENCY, 50)
+
+
+def preprocess_data(file_to_check):
+    data_path = Path.cwd().parent / "data" / file_to_check
+    raw_data = mne.io.read_raw_fif(data_path)
+    raw_data.load_data()
+
+    raw_data.pick(CHANNELS)
+    raw_data.apply_function(fun=lambda x: x * VOLTS_IN_MICROVOLT)
+    raw_data.filter(l_freq=LOWPASS_FREQUENCY, h_freq=HIGHPASS_FREQUENCY)
+    raw_data.notch_filter(BANDSTOP_FREQUENCY)
+
+    return raw_data
+import json
+import random
+from dataclasses import dataclass
+from pathlib import Path
+
+
+@dataclass(frozen=True, kw_only=True)
+class Sentence:
+    text: str
+    question: str = None
+    options: list[str] = None
+    correct_answer_index: int = None
+    audio_path: str = None
+    category: str = "normal"  # Can be "normal", "sentiment", "audio"
+
+
+@dataclass(frozen=True, kw_only=True)
+class SentenceSet:
+    normal: list[Sentence]
+    sentiment: list[Sentence]
+    audio: list[Sentence]
+    test_normal: list[Sentence]
+    test_sentiment: list[Sentence]
+    test_audio: list[Sentence]
+
+
+def load_sentences() -> SentenceSet:
+    assets_dir = Path(__file__).parent / "assets"
+
+    # Load sentence data from JSON files
+    with open(assets_dir / "normal_sentences.json", "r", encoding="utf-8") as file:
+        normal_sentences_data = json.load(file)
+
+    with open(assets_dir / "sentiment_sentences.json", "r", encoding="utf-8") as file:
+        sentiment_sentences_data = json.load(file)
+
+    with open(assets_dir / "audio_sentences.json", "r", encoding="utf-8") as file:
+        audio_sentences_data = json.load(file)
+
+    # Create sentence objects
+    normal_sentences = [
+        Sentence(
+            text=item["text"],
+            question=item.get("question"),
+            options=item.get("options"),
+            correct_answer_index=item.get("correct_answer_index"),
+            category="normal",
+        )
+        for item in normal_sentences_data
+    ]
+
+    sentiment_sentences = [
+        Sentence(
+            text=item["text"],
+            question=item.get("question"),
+            options=item.get("options"),
+            correct_answer_index=item.get("correct_answer_index"),
+            category="sentiment",
+        )
+        for item in sentiment_sentences_data
+    ]
+
+    audio_sentences = [
+        Sentence(
+            text=item["text"],
+            audio_path=item.get("audio_path"),
+            question=item.get("question"),
+            options=item.get("options"),
+            correct_answer_index=item.get("correct_answer_index"),
+            category="audio",
+        )
+        for item in audio_sentences_data
+    ]
+
+    # Extract test sentences
+    test_normal = normal_sentences[:10]
+    test_sentiment = sentiment_sentences[:10]
+    test_audio = audio_sentences[:10]
+
+    # Remove test sentences from main lists
+    normal_sentences = normal_sentences[10:]
+    sentiment_sentences = sentiment_sentences[10:]
+    audio_sentences = audio_sentences[10:]
+
+    # Shuffle sentences
+    random.shuffle(normal_sentences)
+    random.shuffle(sentiment_sentences)
+    random.shuffle(audio_sentences)
+
+    return SentenceSet(
+        normal=normal_sentences,
+        sentiment=sentiment_sentences,
+        audio=audio_sentences,
+        test_normal=test_normal,
+        test_sentiment=test_sentiment,
+        test_audio=test_audio,
+    )
+import logging
+from pathlib import Path
+from threading import Thread
+from typing import cast
+
+from data_acquisition.eeg_headset import MockEEGHeadset
+from data_acquisition.experiment_runner import ExperimentRunner
+from data_acquisition.gui import PygameGui
+from data_acquisition.gui.display_mode import FullscreenDisplayMode, WindowedDisplayMode
+from data_acquisition.pre_experiment_survey import PreExperimentSurvey
+
+from .app_sequencer_builder import AppSequencerBuilder
+from .config import Config
+from .constants import (
+    BLOCK_COUNT,
+    DEBUG_BLOCK_COUNT,
+    DEBUG_RELAX_SCREEN_TIMEOUT_MILLIS,
+    DEBUG_SENTENCES_IN_BLOCK_COUNT,
+    LOGGING_DATETIME_FORMAT,
+    LOGGING_LEVEL,
+    LOGGING_MESSAGE_FORMAT,
+    RELAX_SCREEN_TIMEOUT_MILLIS,
+    SENTENCES_IN_BLOCK_COUNT,
+    SURVEY_CONFIG_PATH,
+    SURVEY_PARTICIPANT_ID_KEY,
+)
+
+
+def run(
+    *,
+    brainaccess_cap_name: str,
+    do_use_debug_mode: bool = False,
+    do_use_mock_headset: bool = False,
+) -> None:
+    survey = PreExperimentSurvey(config_file_path=SURVEY_CONFIG_PATH)
+    responses = survey.start_and_get_responses()
+    participant_id = cast(str, responses.get(SURVEY_PARTICIPANT_ID_KEY))
+
+    logger = logging.getLogger()
+    logger.setLevel(LOGGING_LEVEL)
+    (Path().cwd() / "logs").mkdir(exist_ok=True)
+    handler = logging.FileHandler(f"logs/{participant_id}.log", encoding="utf-8")
+    handler.setLevel(LOGGING_LEVEL)
+    formatter = logging.Formatter(
+        LOGGING_MESSAGE_FORMAT, datefmt=LOGGING_DATETIME_FORMAT
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    if do_use_mock_headset:
+        headset = MockEEGHeadset(logger=logger)
+    else:
+        from data_acquisition.eeg_headset.brainaccess import BrainAccessV3Headset
+        from data_acquisition.eeg_headset.brainaccess.devices import (
+            BRAINACCESS_MAXI_32_CHANNEL,
+        )
+
+        headset = BrainAccessV3Headset(
+            device_name=brainaccess_cap_name,
+            device_channels=BRAINACCESS_MAXI_32_CHANNEL,
+            logger=logger,
+        )
+
+    display_mode = (
+        WindowedDisplayMode(width=800, height=600)
+        if do_use_debug_mode
+        else FullscreenDisplayMode()
+    )
+    gui = PygameGui(display_mode=display_mode, window_title="NeuroGuard", logger=logger)
+
+    config = Config(
+        block_count=(DEBUG_BLOCK_COUNT if do_use_debug_mode else BLOCK_COUNT),
+        sentence_count=(
+            DEBUG_SENTENCES_IN_BLOCK_COUNT
+            if do_use_debug_mode
+            else SENTENCES_IN_BLOCK_COUNT
+        ),
+        relax_screen_timeout_millis=(
+            DEBUG_RELAX_SCREEN_TIMEOUT_MILLIS
+            if do_use_debug_mode
+            else RELAX_SCREEN_TIMEOUT_MILLIS
+        ),
+    )
+
+    app_sequencer_builder = AppSequencerBuilder(
+        gui=gui,
+        config=config,
+        headset=headset,
+        participant_id=participant_id,
+        logger=logger,
+    )
+    sequencer = app_sequencer_builder.set_up_app_sequencer()
+
+    runner = ExperimentRunner(
+        gui=gui, screen_sequencer=sequencer, end_callback=gui.stop, logger=logger
+    )
+
+    Thread(target=runner.run).start()
+    gui.start()
+from dataclasses import dataclass
+
+from data_acquisition.gui.event_types import Key
+
+from .constants import (
+    AUDIO_INSTRUCTION_TEXT,
+    BLOCK_COUNT,
+    CONTINUE_SCREEN_ADVANCE_KEY,
+    CONTINUE_SCREEN_TEXT,
+    FIXATION_CROSS_TIMEOUT_RANGE_MILLIS,
+    NORMAL_READING_INSTRUCTION_TEXT,
+    PAUSE_SCREEN_END_ANNOTATION,
+    PAUSE_SCREEN_START_ANNOTATION,
+    PAUSE_SCREEN_TEXT,
+    PAUSE_UNPAUSE_KEY,
+    QUESTION_SCREEN_END_ANNOTATION,
+    QUESTION_SCREEN_START_ANNOTATION,
+    RELAX_SCREEN_END_ANNOTATION,
+    RELAX_SCREEN_START_ANNOTATION,
+    RELAX_SCREEN_TIMEOUT_MILLIS,
+    SENTENCE_SCREEN_ADVANCE_KEY,
+    SENTENCE_SCREEN_END_ANNOTATION,
+    SENTENCE_SCREEN_START_ANNOTATION,
+    SENTENCE_SCREEN_TIMEOUT_MILLIS,
+    SENTENCES_IN_BLOCK_COUNT,
+    SENTIMENT_READING_INSTRUCTION_TEXT,
+    THINKING_SCREEN_END_ANNOTATION,
+    THINKING_SCREEN_START_ANNOTATION,
+    THINKING_SCREEN_TIMEOUT_MILLIS,
+)
+
+fixation_cross_timeout_range_start_millis, fixation_cross_timeout_range_end_millis = (
+    FIXATION_CROSS_TIMEOUT_RANGE_MILLIS
+)
+
+
+@dataclass
+class Config:
+    block_count: int = BLOCK_COUNT
+    sentence_count: int = SENTENCES_IN_BLOCK_COUNT
+
+    do_show_continue_screen: bool = True
+    continue_screen_text: str = CONTINUE_SCREEN_TEXT
+    continue_screen_advance_key: Key = CONTINUE_SCREEN_ADVANCE_KEY
+
+    normal_reading_instruction_text: str = NORMAL_READING_INSTRUCTION_TEXT
+    sentiment_reading_instruction_text: str = SENTIMENT_READING_INSTRUCTION_TEXT
+    audio_instruction_text: str = AUDIO_INSTRUCTION_TEXT
+
+    sentence_screen_advance_key: Key = SENTENCE_SCREEN_ADVANCE_KEY
+    sentence_screen_timeout_millis: int = SENTENCE_SCREEN_TIMEOUT_MILLIS
+    sentence_screen_start_annotation = SENTENCE_SCREEN_START_ANNOTATION
+    sentence_screen_end_annotation = SENTENCE_SCREEN_END_ANNOTATION
+
+    thinking_screen_timeout_millis: int = THINKING_SCREEN_TIMEOUT_MILLIS
+    thinking_screen_start_annotation = THINKING_SCREEN_START_ANNOTATION
+    thinking_screen_end_annotation = THINKING_SCREEN_END_ANNOTATION
+
+    question_screen_start_annotation = QUESTION_SCREEN_START_ANNOTATION
+    question_screen_end_annotation = QUESTION_SCREEN_END_ANNOTATION
+
+    fixation_cross_timeout_range_start_millis: int = (
+        fixation_cross_timeout_range_start_millis
+    )
+    fixation_cross_timeout_range_end_millis: int = (
+        fixation_cross_timeout_range_end_millis
+    )
+
+    pause_unpause_key: Key = PAUSE_UNPAUSE_KEY
+    pause_screen_text: str = PAUSE_SCREEN_TEXT
+    pause_screen_start_annotation: str = PAUSE_SCREEN_START_ANNOTATION
+    pause_screen_end_annotation: str = PAUSE_SCREEN_END_ANNOTATION
+
+    relax_screen_timeout_millis: int = RELAX_SCREEN_TIMEOUT_MILLIS
+    relax_screen_start_annotation: str = RELAX_SCREEN_START_ANNOTATION
+    relax_screen_end_annotation: str = RELAX_SCREEN_END_ANNOTATION
+
+    # Ratios of questions to sentences
+    normal_question_ratio: float = 68.0 / 300.0  # 68 questions per 300 sentences
+    sentiment_question_ratio: float = 47.0 / 400.0  # 47 questions per 400 sentences
+from logging import Logger
+from pathlib import Path
+
+from data_acquisition.eeg_headset import EEGHeadset
+from data_acquisition.event_manager import KeyPressEventManager
+from data_acquisition.eventful_screen import EventfulScreen
+from data_acquisition.gui import Gui
+from data_acquisition.screens import TextScreen
+
+from .config import Config
+from .constants import SENTENCE_SCREEN_BACKGROUND_COLOR, SENTENCE_SCREEN_TEXT_COLOR
+
+
+class AudioScreen:
+    def __init__(
+        self,
+        *,
+        gui: Gui,
+        eeg_headset: EEGHeadset,
+        config: Config,
+        audio_path: str,
+        text: str,
+        logger: Logger,
+    ):
+        self._gui = gui
+        self._eeg_headset = eeg_headset
+        self._config = config
+        self._audio_path = audio_path
+        self._text = text
+        self._logger = logger
+        self._is_audio_played = False
+
+    def create_screen(self) -> EventfulScreen[None]:
+        import pygame
+
+        # Create text screen
+        display_text = "Słuchaj uważnie...\n\nWciśnij spację po wysłuchaniu."
+
+        audio_screen = TextScreen(
+            gui=self._gui,
+            text=display_text,
+            text_color=SENTENCE_SCREEN_TEXT_COLOR,
+            background_color=SENTENCE_SCREEN_BACKGROUND_COLOR,
+        )
+
+        # Create event manager
+        key_event_manager = KeyPressEventManager(
+            gui=self._gui,
+            key=self._config.sentence_screen_advance_key,
+            logger=self._logger,
+        )
+
+        def end_audio_callback(_):
+            if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
+                pygame.mixer.music.stop()
+            self._eeg_headset.annotate(self._config.sentence_screen_end_annotation)
+            self._logger.info("Audio playback ended by user")
+
+        key_event_manager.register_callback(end_audio_callback)
+
+        # Function to play audio when screen is shown
+        def play_audio():
+            self._eeg_headset.annotate(
+                f"{self._config.sentence_screen_start_annotation}_audio"
+            )
+
+            # First try the direct path
+            direct_path = Path(self._audio_path)
+
+            # Then try relative to the current file
+            module_path = Path(__file__).parent / "assets" / self._audio_path
+
+            # Also try relative to the current working directory
+            cwd_path = Path.cwd() / "assets" / self._audio_path
+
+            # Try different potential paths
+            paths_to_try = [direct_path, module_path, cwd_path]
+
+            found_path = None
+            for path in paths_to_try:
+                if path.exists():
+                    found_path = path
+                    self._logger.info(f"Found audio file at: {found_path}")
+                    break
+
+            if not found_path:
+                self._logger.error(f"Audio file not found: {self._audio_path}")
+                self._logger.error(f"Tried paths: {[str(p) for p in paths_to_try]}")
+                self._is_audio_played = False
+                audio_screen.set_text(
+                    f"Nie można znaleźć pliku audio.\n{self._audio_path}\nWciśnij spację, aby kontynuować."
+                )
+                return
+
+            try:
+                # Initialize pygame mixer if not already initialized
+                if not pygame.mixer.get_init():
+                    self._logger.info("Initializing pygame mixer")
+                    pygame.mixer.init(
+                        frequency=44100, size=-16, channels=2, buffer=2048
+                    )
+
+                pygame.mixer.music.load(str(found_path))
+                pygame.mixer.music.set_volume(0.7)  # 70% volume
+                pygame.mixer.music.play()
+                self._is_audio_played = True
+                self._logger.info(f"Playing audio: {found_path}")
+            except pygame.error as e:
+                self._logger.error(f"Pygame error playing audio {found_path}: {str(e)}")
+                self._is_audio_played = False
+                audio_screen.set_text(
+                    f"Błąd odtwarzania pliku audio.\n{str(e)}\nWciśnij spację, aby kontynuować."
+                )
+            except Exception as e:
+                self._logger.error(f"Unexpected error playing audio: {str(e)}")
+                self._is_audio_played = False
+                audio_screen.set_text(
+                    f"Nieoczekiwany błąd.\n{str(e)}\nWciśnij spację, aby kontynuować."
+                )
+
+        # Create and return eventful screen
+        screen = EventfulScreen(
+            screen=audio_screen,
+            event_manager=key_event_manager,
+            screen_show_callback=play_audio,
+        )
+
+        return screen
+import logging
+from pathlib import Path
+
+from colour import Color
+from data_acquisition.gui.event_types import Key
+
+SURVEY_CONFIG_PATH = Path("survey.yml")
+SURVEY_PARTICIPANT_ID_KEY = "participant_id"
+
+LOGGING_LEVEL = logging.INFO
+LOGGING_MESSAGE_FORMAT = "%(asctime)s - %(message)s"
+LOGGING_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+BLOCK_COUNT = 6
+DEBUG_BLOCK_COUNT = 2
+SENTENCES_IN_BLOCK_COUNT = 50
+DEBUG_SENTENCES_IN_BLOCK_COUNT = 3
+TEST_BLOCK_SIZE = 10
+
+# Changed background color to light gray for better text reading
+SENTENCE_SCREEN_BACKGROUND_COLOR = Color("#F0F0F0")  # Light gray
+SENTENCE_SCREEN_TEXT_COLOR = Color("black")
+
+NON_SENTENCE_SCREEN_BACKGROUND_COLOR = Color("black")
+NON_SENTENCE_SCREEN_TEXT_COLOR = Color("white")
+
+CONTINUE_SCREEN_ADVANCE_KEY = Key.SPACE
+CONTINUE_SCREEN_TEXT = "Naciśnij SPACJĘ, aby kontynuować badanie."
+
+SENTENCE_SCREEN_ADVANCE_KEY = Key.SPACE
+SENTENCE_SCREEN_TIMEOUT_MILLIS = 5 * 1000
+SENTENCE_SCREEN_START_ANNOTATION = "SENTENCE_START"
+SENTENCE_SCREEN_END_ANNOTATION = "SENTENCE_END"
+
+# Instructions for different reading modes
+NORMAL_READING_INSTRUCTION_TEXT = "Za chwilę zostanie Ci pokazane zdanie. Przeczytaj je uważnie w myślach i wciśnij spację, żeby przejść dalej."
+SENTIMENT_READING_INSTRUCTION_TEXT = "Za chwilę zostanie Ci pokazane zdanie. Przeczytaj je uważnie w myślach i wyobraź sobie opisaną sytuację. Wciśnij spację, żeby przejść dalej."
+AUDIO_INSTRUCTION_TEXT = (
+    "Za chwilę usłyszysz zdanie. Słuchaj uważnie i wciśnij spację, żeby przejść dalej."
+)
+
+# New screen for thinking about the sentence
+THINKING_SCREEN_TIMEOUT_MILLIS = 3 * 1000
+THINKING_SCREEN_START_ANNOTATION = "THINKING_START"
+THINKING_SCREEN_END_ANNOTATION = "THINKING_END"
+THINKING_SCREEN_TEXT = (
+    "Myślimy o tym co przeczytaliśmy przez około kilka sekund. W sentiment ilustrujemy."
+)
+
+# Question screen
+QUESTION_SCREEN_START_ANNOTATION = "QUESTION_START"
+QUESTION_SCREEN_END_ANNOTATION = "QUESTION_END"
+
+FIXATION_CROSS_TIMEOUT_RANGE_MILLIS = (400, 600)
+
+RELAX_SCREEN_TIMEOUT_MILLIS = 60 * 1000
+DEBUG_RELAX_SCREEN_TIMEOUT_MILLIS = 5 * 1000
+RELAX_SCREEN_START_ANNOTATION = "RELAX_START"
+RELAX_SCREEN_END_ANNOTATION = "RELAX_END"
+
+PAUSE_UNPAUSE_KEY = Key.ESCAPE
+PAUSE_SCREEN_TEXT = "Naciśnij ESCAPE, aby kontynuować badanie."
+PAUSE_SCREEN_START_ANNOTATION = "PAUSE_START"
+PAUSE_SCREEN_END_ANNOTATION = "PAUSE_END"
+import random
+from logging import Logger
+
+from data_acquisition.eeg_headset import EEGHeadset
+from data_acquisition.event_manager import (
+    CompositeEventManager,
+    EventManager,
+    FixedTimeoutEventManager,
+    KeyPressEventManager,
+    RandomTimeoutEventManager,
+)
+from data_acquisition.eventful_screen import EventfulScreen
+from data_acquisition.gui import Gui
+from data_acquisition.gui.event_types import Key
+from data_acquisition.screens import BlankScreen, FixationCrossScreen, TextScreen
+from data_acquisition.sequencers import SimpleScreenSequencer
+
+from .audio_screen import AudioScreen
+from .config import Config
+from .constants import (
+    NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
+    NON_SENTENCE_SCREEN_TEXT_COLOR,
+    SENTENCE_SCREEN_BACKGROUND_COLOR,
+    SENTENCE_SCREEN_TEXT_COLOR,
+    THINKING_SCREEN_TEXT,
+)
+from .question_screen import QuestionScreen
+from .sentences import Sentence
+
+
+class SentenceSequencer(SimpleScreenSequencer[None]):
+    def __init__(
+        self,
+        *,
+        gui: Gui,
+        eeg_headset: EEGHeadset,
+        config: Config,
+        sentences: list[Sentence],
+        block_type: str,
+        is_test_block: bool = False,
+        logger: Logger,
+    ):
+        super().__init__(gui=gui, logger=logger)
+
+        self._sentences = sentences
+        self._eeg_headset = eeg_headset
+        self._config = config
+        self._block_type = block_type
+        self._is_test_block = is_test_block
+        self._logger = logger
+
+        # Track statistics for test blocks
+        self._correct_answers = 0
+        self._total_questions = 0
+
+        # Set instruction text based on block type
+        if block_type == "normal":
+            instruction_text = config.normal_reading_instruction_text
+        elif block_type == "sentiment":
+            instruction_text = config.sentiment_reading_instruction_text
+        elif block_type == "audio":
+            instruction_text = config.audio_instruction_text
+        else:
+            instruction_text = config.continue_screen_text
+
+        # Set up screens
+        self._continue_screen = TextScreen(
+            gui=self._gui,
+            text=instruction_text,
+            text_color=NON_SENTENCE_SCREEN_TEXT_COLOR,
+            background_color=NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
+        )
+
+        self._thinking_screen = TextScreen(
+            gui=self._gui,
+            text=THINKING_SCREEN_TEXT,
+            text_color=NON_SENTENCE_SCREEN_TEXT_COLOR,
+            background_color=NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
+        )
+
+        self._pause_screen = TextScreen(
+            gui=self._gui,
+            text=config.pause_screen_text,
+            text_color=NON_SENTENCE_SCREEN_TEXT_COLOR,
+            background_color=NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
+        )
+
+        # Set up event managers
+        self._continue_screen_event_manager = KeyPressEventManager(
+            gui=self._gui, key=config.continue_screen_advance_key, logger=logger
+        )
+        self._build_sentence_screen_event_manager(
+            advance_key=config.sentence_screen_advance_key,
+            timeout_millis=config.sentence_screen_timeout_millis,
+        )
+        self._build_thinking_screen_event_manager(
+            timeout_millis=config.thinking_screen_timeout_millis,
+        )
+        self._build_fixation_cross_screen_event_manager(
+            timeout_range_start_millis=config.fixation_cross_timeout_range_start_millis,
+            timeout_range_end_millis=config.fixation_cross_timeout_range_end_millis,
+        )
+        self._build_pause_unpause_event_manager(key=config.pause_unpause_key)
+        self._build_relax_screen_event_manager(
+            timeout_millis=config.relax_screen_timeout_millis
+        )
+
+        # State variables
+        self._was_first_screen_shown = False
+        self._was_fixation_cross_shown = False
+        self._was_thinking_screen_shown = False
+        self._was_paused = False
+        self._was_relax_screen_shown = False
+        self._index = 0
+        self._current_sentence = None
+        self._show_question = False
+
+        # Determine which sentences should have questions
+        self._setup_questions()
+
+    def _setup_questions(self):
+        # Determine which sentences will have questions
+        self._sentences_with_questions = set()
+
+        if self._is_test_block:
+            # All test sentences should have questions
+            self._sentences_with_questions = set(range(len(self._sentences)))
+            return
+
+        # For normal blocks, use the question ratio
+        total_sentences = len(self._sentences)
+
+        if self._block_type == "normal":
+            question_count = int(total_sentences * self._config.normal_question_ratio)
+        elif self._block_type == "sentiment":
+            question_count = int(
+                total_sentences * self._config.sentiment_question_ratio
+            )
+        else:
+            question_count = int(total_sentences * self._config.normal_question_ratio)
+
+        # Randomly select which sentences will have questions
+        question_indices = random.sample(
+            range(total_sentences), min(question_count, total_sentences)
+        )
+        self._sentences_with_questions = set(question_indices)
+
+        self._logger.info(
+            f"Block will have {len(self._sentences_with_questions)} questions out of {total_sentences} sentences"
+        )
+
+    def _build_sentence_screen_event_manager(
+        self,
+        *,
+        advance_key: Key,
+        timeout_millis: int,
+    ) -> None:
+        key_event_manager = KeyPressEventManager(
+            gui=self._gui, key=advance_key, logger=self._logger
+        )
+        timeout_event_manager = FixedTimeoutEventManager(
+            gui=self._gui, timeout_millis=timeout_millis, logger=self._logger
+        )
+
+        self._sentence_screen_event_manager = CompositeEventManager(
+            event_managers=[key_event_manager, timeout_event_manager],
+            logger=self._logger,
+        )
+        self._sentence_screen_event_manager.register_callback(
+            lambda _: self._eeg_headset.annotate(
+                self._config.sentence_screen_end_annotation
+            )
+        )
+
+    def _build_thinking_screen_event_manager(self, *, timeout_millis: int) -> None:
+        self._thinking_screen_event_manager = FixedTimeoutEventManager(
+            gui=self._gui, timeout_millis=timeout_millis, logger=self._logger
+        )
+        self._thinking_screen_event_manager.register_callback(
+            lambda _: self._eeg_headset.annotate(
+                self._config.thinking_screen_end_annotation
+            )
+        )
+
+    def _build_fixation_cross_screen_event_manager(
+        self, *, timeout_range_start_millis: int, timeout_range_end_millis: int
+    ) -> None:
+        self._fixation_cross_screen_event_manager = RandomTimeoutEventManager(
+            gui=self._gui,
+            timeout_min_millis=timeout_range_start_millis,
+            timeout_max_millis=timeout_range_end_millis,
+            logger=self._logger,
+        )
+
+    def _build_pause_unpause_event_manager(self, *, key: Key) -> None:
+        self._pause_unpause_event_manager = KeyPressEventManager(
+            gui=self._gui, key=key, logger=self._logger
+        )
+
+    def _build_relax_screen_event_manager(self, *, timeout_millis: int) -> None:
+        self._relax_screen_event_manager = FixedTimeoutEventManager(
+            gui=self._gui, timeout_millis=timeout_millis, logger=self._logger
+        )
+
+        self._relax_screen_event_manager.register_callback(
+            lambda _: self._eeg_headset.annotate(
+                self._config.relax_screen_end_annotation
+            )
+        )
+
+    def _get_next(self) -> EventfulScreen[None]:
+        if not self._was_first_screen_shown and self._config.do_show_continue_screen:
+            return self._get_continue_screen()
+        self._was_first_screen_shown = True
+
+        if self._was_paused:
+            return self._get_pause_screen()
+
+        if self._index >= len(self._sentences):
+            return self._get_relax_screen()
+
+        if (
+            self._show_question
+            and self._current_sentence
+            and self._current_sentence.question
+        ):
+            self._show_question = False
+            return self._get_question_screen()
+
+        if not self._was_fixation_cross_shown:
+            return self._get_fixation_cross_screen()
+
+        if (
+            not self._was_thinking_screen_shown
+            and self._current_sentence
+            and self._block_type == "sentiment"
+        ):
+            return self._get_thinking_screen()
+
+        return self._get_sentence_screen()
+
+    def _get_continue_screen(self) -> EventfulScreen[None]:
+        self._was_first_screen_shown = True
+
+        continue_screen = self._continue_screen
+
+        screen = EventfulScreen(
+            screen=continue_screen,
+            event_manager=self._continue_screen_event_manager.clone(),
+        )
+
+        return screen
+
+    def _get_pause_screen(self) -> EventfulScreen[None]:
+        self._was_paused = False
+
+        self._index -= 1
+
+        pause_event_manager = self._pause_unpause_event_manager.clone()
+        pause_event_manager.register_callback(
+            lambda _: self._eeg_headset.annotate(
+                self._config.pause_screen_end_annotation
+            )
+        )
+
+        screen = EventfulScreen(
+            screen=self._pause_screen,
+            event_manager=pause_event_manager,
+            screen_show_callback=lambda: self._eeg_headset.annotate(
+                self._config.pause_screen_start_annotation
+            ),
+        )
+
+        return screen
+
+    def _get_relax_screen(self) -> EventfulScreen[None]:
+        if self._was_relax_screen_shown:
+            if self._is_test_block:
+                self._logger.info(
+                    f"Test block results: {self._correct_answers}/{self._total_questions} correct answers"
+                )
+            raise StopIteration
+
+        self._was_relax_screen_shown = True
+
+        relax_screen = BlankScreen(gui=self._gui)
+
+        screen = EventfulScreen(
+            screen=relax_screen,
+            event_manager=self._relax_screen_event_manager.clone(),
+            screen_show_callback=lambda: self._eeg_headset.annotate(
+                self._config.relax_screen_start_annotation
+            ),
+        )
+
+        return screen
+
+    def _get_fixation_cross_screen(self) -> EventfulScreen[None]:
+        self._was_fixation_cross_shown = True
+        self._was_thinking_screen_shown = False
+
+        screen = FixationCrossScreen(gui=self._gui)
+        event_manager = self._get_event_manager_with_pause(
+            self._fixation_cross_screen_event_manager
+        )
+        screen = EventfulScreen(screen=screen, event_manager=event_manager)
+
+        return screen
+
+    def _get_thinking_screen(self) -> EventfulScreen[None]:
+        self._was_thinking_screen_shown = True
+
+        event_manager = self._get_event_manager_with_pause(
+            self._thinking_screen_event_manager
+        )
+
+        screen = EventfulScreen(
+            screen=self._thinking_screen,
+            event_manager=event_manager,
+            screen_show_callback=lambda: self._eeg_headset.annotate(
+                self._config.thinking_screen_start_annotation
+            ),
+        )
+
+        return screen
+
+    def _get_sentence_screen(self) -> EventfulScreen[None]:
+        self._was_fixation_cross_shown = False
+
+        if self._index < len(self._sentences):
+            self._current_sentence = self._sentences[self._index]
+            self._index += 1
+
+            # Check if this sentence should have a question
+            self._show_question = (self._index - 1) in self._sentences_with_questions
+
+            # Create appropriate screen based on sentence type
+            if (
+                self._current_sentence.category == "audio"
+                and self._current_sentence.audio_path
+            ):
+                return self._get_audio_screen()
+            else:
+                # Regular text sentence
+                text = self._current_sentence.text
+                screen = TextScreen(
+                    gui=self._gui,
+                    text=text,
+                    text_color=SENTENCE_SCREEN_TEXT_COLOR,
+                    background_color=SENTENCE_SCREEN_BACKGROUND_COLOR,
+                )
+                event_manager = self._get_event_manager_with_pause(
+                    self._sentence_screen_event_manager
+                )
+                eventful_screen = EventfulScreen(
+                    screen=screen,
+                    event_manager=event_manager,
+                    screen_show_callback=lambda: self._eeg_headset.annotate(
+                        f"{self._config.sentence_screen_start_annotation}_{self._current_sentence.category}"
+                    ),
+                )
+
+                self._logger.info(
+                    f"Showing screen with {self._current_sentence.category} sentence: {text}"
+                )
+                return eventful_screen
+        else:
+            # Should not reach here due to index check in _get_next
+            return self._get_relax_screen()
+
+    def _get_audio_screen(self) -> EventfulScreen[None]:
+        audio_screen = AudioScreen(
+            gui=self._gui,
+            eeg_headset=self._eeg_headset,
+            config=self._config,
+            audio_path=self._current_sentence.audio_path,
+            text=self._current_sentence.text,  # For debugging
+            logger=self._logger,
+        )
+
+        return audio_screen.create_screen()
+
+    def _get_question_screen(self) -> EventfulScreen[None]:
+        def on_answer(is_correct):
+            if self._is_test_block:
+                self._total_questions += 1
+                if is_correct:
+                    self._correct_answers += 1
+
+        question_screen = QuestionScreen(
+            gui=self._gui,
+            eeg_headset=self._eeg_headset,
+            config=self._config,
+            question=self._current_sentence.question,
+            options=self._current_sentence.options,
+            correct_answer_index=self._current_sentence.correct_answer_index,
+            logger=self._logger,
+            on_answer_callback=on_answer,
+        )
+
+        return question_screen.create_screen()
+
+    def _get_event_manager_with_pause(
+        self, event_manager: EventManager[None]
+    ) -> EventManager[None]:
+        pause_event_manager = self._pause_unpause_event_manager.clone()
+        pause_event_manager.register_callback(self._mark_as_paused)
+
+        pause_screen_event_manager = CompositeEventManager(
+            event_managers=[pause_event_manager, event_manager.clone()],
+            logger=self._logger,
+        )
+
+        return pause_screen_event_manager
+
+    def _mark_as_paused(self, _: None) -> None:
+        self._was_paused = True
+from logging import Logger
+from pathlib import Path
+
+from data_acquisition.eeg_headset import EEGHeadset
+from data_acquisition.gui import Gui
+from data_acquisition.sequencers import BlockScreenSequencer, ScreenSequencer
+
+from .config import Config
+from .constants import TEST_BLOCK_SIZE
+from .sentence_sequencer import SentenceSequencer
+from .sentences import SentenceSet, load_sentences
+
+
+class AppSequencerBuilder:
+    def __init__(
+        self,
+        *,
+        gui: Gui,
+        config: Config,
+        headset: EEGHeadset,
+        participant_id: str,
+        logger: Logger,
+    ):
+        self._gui = gui
+        self._config = config
+        self._headset = headset
+        self._participant_id = participant_id
+        self._logger = logger
+
+    def set_up_app_sequencer(self) -> ScreenSequencer[None]:
+        self._set_up_save_directory()
+
+        sentences = load_sentences()
+        sequencers = self._build_mixed_sequencers(sentences)
+
+        return BlockScreenSequencer(
+            sequencers=sequencers,
+            block_start_callback=lambda _: self._headset.start(),
+            block_end_callback=lambda block_number: self._headset.stop_and_save_at_path(
+                self._eeg_save_dir / f"{block_number}_raw.fif"
+            ),
+            logger=self._logger,
+        )
+
+    def _set_up_save_directory(self) -> None:
+        self._eeg_save_dir = Path("data") / self._participant_id
+        self._eeg_save_dir.mkdir(parents=True, exist_ok=True)
+
+    def _build_mixed_sequencers(
+        self, sentences: SentenceSet
+    ) -> list[ScreenSequencer[None]]:
+        sequencers = []
+
+        # Create a mixed order of block types to maintain attention
+        block_types = []
+
+        # Add test blocks first
+        test_normal = SentenceSequencer(
+            gui=self._gui,
+            eeg_headset=self._headset,
+            config=self._config,
+            sentences=sentences.test_normal,
+            block_type="normal",
+            is_test_block=True,
+            logger=self._logger,
+        )
+        sequencers.append(test_normal)
+
+        test_sentiment = SentenceSequencer(
+            gui=self._gui,
+            eeg_headset=self._headset,
+            config=self._config,
+            sentences=sentences.test_sentiment,
+            block_type="sentiment",
+            is_test_block=True,
+            logger=self._logger,
+        )
+        sequencers.append(test_sentiment)
+
+        if sentences.test_audio:
+            test_audio = SentenceSequencer(
+                gui=self._gui,
+                eeg_headset=self._headset,
+                config=self._config,
+                sentences=sentences.test_audio,
+                block_type="audio",
+                is_test_block=True,
+                logger=self._logger,
+            )
+            sequencers.append(test_audio)
+
+        # Create a mixed order for normal blocks
+        # Use pattern: normal -> sentiment -> audio -> normal -> ...
+        block_types = ["normal", "sentiment"]
+        if sentences.audio:
+            block_types.append("audio")
+
+        # Calculate sentences per block, maintaining total count
+        total_blocks = self._config.block_count
+        sentences_per_block = self._config.sentence_count
+
+        normal_sentences = sentences.normal.copy()
+        sentiment_sentences = sentences.sentiment.copy()
+        audio_sentences = sentences.audio.copy() if sentences.audio else []
+
+        # Create sequencers for each block
+        for i in range(total_blocks):
+            block_type = block_types[i % len(block_types)]
+
+            if block_type == "normal" and normal_sentences:
+                block_sentences = normal_sentences[:sentences_per_block]
+                normal_sentences = normal_sentences[sentences_per_block:]
+            elif block_type == "sentiment" and sentiment_sentences:
+                block_sentences = sentiment_sentences[:sentences_per_block]
+                sentiment_sentences = sentiment_sentences[sentences_per_block:]
+            elif block_type == "audio" and audio_sentences:
+                block_sentences = audio_sentences[:sentences_per_block]
+                audio_sentences = audio_sentences[sentences_per_block:]
+            else:
+                # Fallback if we run out of sentences for a type
+                continue
+
+            sequencer = SentenceSequencer(
+                gui=self._gui,
+                eeg_headset=self._headset,
+                config=self._config,
+                sentences=block_sentences,
+                block_type=block_type,
+                logger=self._logger,
+            )
+
+            sequencers.append(sequencer)
+
+        return sequencers
+import time
+
+import pygame
+
+pygame.mixer.init()
+pygame.init()  # Initialize all pygame modules
+
+# Check if mixer initialized properly
+if not pygame.mixer.get_init():
+    print("Error: Pygame mixer not initialized")
+    exit(1)
+
+try:
+    # Set volume (0.0 to 1.0)
+    pygame.mixer.music.set_volume(0.7)
+
+    # Load and play background music
+    pygame.mixer.music.load("./sentence1.mp3")
+    pygame.mixer.music.play(-1)  # -1 for looping
+
+    print("Playing audio... Press Ctrl+C to stop")
+
+    # Keep the program running to allow audio to play
+    while pygame.mixer.music.get_busy():
+        # This loop prevents the script from ending
+        # You can also use pygame.time.wait() if you don't need interactivity
+        time.sleep(0.1)
+
+except KeyboardInterrupt:
+    print("\nStopping audio playback")
+except Exception as e:
+    print(f"Error: {e}")
+finally:
+    pygame.mixer.music.stop()
+    pygame.quit()
+from logging import Logger
+from typing import Callable
+
+from data_acquisition.eeg_headset import EEGHeadset
+from data_acquisition.event_manager import KeyPressEventManager
+from data_acquisition.eventful_screen import EventfulScreen
+from data_acquisition.gui import Gui
+from data_acquisition.gui.event_types import Key
+from data_acquisition.screens import TextScreen
+
+from .config import Config
+from .constants import SENTENCE_SCREEN_BACKGROUND_COLOR, SENTENCE_SCREEN_TEXT_COLOR
+
+
+class QuestionScreen:
+    def __init__(
+        self,
+        *,
+        gui: Gui,
+        eeg_headset: EEGHeadset,
+        config: Config,
+        question: str,
+        options: list[str],
+        correct_answer_index: int,
+        logger: Logger,
+        on_answer_callback: Callable[[bool], None] = None,
+    ):
+        self._gui = gui
+        self._eeg_headset = eeg_headset
+        self._config = config
+        self._question = question
+        self._options = options
+        self._correct_answer_index = correct_answer_index
+        self._logger = logger
+        self._on_answer_callback = on_answer_callback
+
+    def create_screen(self) -> EventfulScreen[None]:
+        # Format the question and options
+        display_text = f"{self._question}\n\n"
+        for i, option in enumerate(self._options):
+            key = chr(ord("A") + i)
+            display_text += f"{key}. {option}\n"
+
+        display_text += (
+            "\nWciśnij odpowiednią literę (A, B, C...), aby wybrać odpowiedź."
+        )
+
+        # Create text screen for the question
+        question_screen = TextScreen(
+            gui=self._gui,
+            text=display_text,
+            text_color=SENTENCE_SCREEN_TEXT_COLOR,
+            background_color=SENTENCE_SCREEN_BACKGROUND_COLOR,
+        )
+
+        # Create event managers for each option key
+        event_managers = []
+        for i in range(len(self._options)):
+            # key = getattr(Key, chr(ord("A") + i))
+            key = chr(ord("A") + i)
+            event_manager = KeyPressEventManager(
+                gui=self._gui, key=key, logger=self._logger
+            )
+
+            # Add callback to check if answer is correct
+            def create_callback(selected_index):
+                def callback(_):
+                    is_correct = selected_index == self._correct_answer_index
+                    self._logger.info(
+                        f"Question answered: {'Correct' if is_correct else 'Incorrect'}"
+                    )
+                    if self._on_answer_callback:
+                        self._on_answer_callback(is_correct)
+                    self._eeg_headset.annotate(
+                        f"{self._config.question_screen_end_annotation}_{selected_index}_{is_correct}"
+                    )
+
+                return callback
+
+            event_manager.register_callback(create_callback(i))
+            event_managers.append(event_manager)
+
+        # Create composite event manager
+        from data_acquisition.event_manager import CompositeEventManager
+
+        composite_event_manager = CompositeEventManager(
+            event_managers=event_managers,
+            logger=self._logger,
+        )
+
+        # Create and return eventful screen
+        screen = EventfulScreen(
+            screen=question_screen,
+            event_manager=composite_event_manager,
+            screen_show_callback=lambda: self._eeg_headset.annotate(
+                self._config.question_screen_start_annotation
+            ),
+        )
+
+        return screen

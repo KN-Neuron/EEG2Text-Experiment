@@ -1,0 +1,14 @@
+[
+  {
+    "text": "Szukam inspiracji w starych książkach podróżniczych.",
+    "question": "O jakim przedmiocie mowa w zdaniu?",
+    "options": ["Książka", "Stół", "Krzesło"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Ostatnio odwiedziłam nowo otwartą siłownię w centrum.",
+    "question": "Które z poniższych słów występuje w poprzednim zdaniu?",
+    "options": ["nowo", "rower", "morze"],
+    "correct_answer_index": 0
+  }
+]

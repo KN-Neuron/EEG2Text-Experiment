@@ -1,0 +1,15 @@
+[
+  {
+    "text": "Film był fantastyczny, wszyscy wyszli z kina zachwyceni.",
+    "question": "Jaki był odbiór filmu?",
+    "options": ["Negatywny", "Neutralny", "Pozytywny"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Pogoda zepsuła plany weekendowe, cały dzień padało.",
+    "question": "Jak pogoda wpłynęła na plany?",
+    "options": ["Pozytywnie", "Negatywnie", "Nie miała wpływu"],
+    "correct_answer_index": 1
+  }
+]
+
