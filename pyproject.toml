@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "experiment-app"
+version = "0.1.0"
+description = ""
+authors = ["KN Neuron"]
+readme = "README.md"
+packages = [
+    { include = "experiment_app", from = "src" }
+]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.12,<4.0"
+data-acquisition-framework = { git = "https://gitlab.com/kn-neuron/neuroguard/data-acquisition-framework.git" }
+mne = ">=1.10.0,<2.0.0"
+ipykernel = ">=6.30.0,<7.0.0"
+numpy = ">=2.3.2,<3.0.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+isort = "^6.0.1"
+pyright = "^1.1.402"
+
+[tool.pyright]
+typeCheckingMode = "strict"
+reportMissingTypeStubs = "none"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
