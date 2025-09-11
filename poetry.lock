@@ -437,7 +437,7 @@ tests = ["pytest", "pytest-cov", "pytest-xdist"]
 
 [[package]]
 name = "data-acquisition-framework"
-version = "0.4.0"
+version = "0.5.0"
 description = ""
 optional = false
 python-versions = ">=3.12"
@@ -453,8 +453,8 @@ pyyaml = ">=6.0.2,<7.0.0"
 [package.source]
 type = "git"
 url = "https://gitlab.com/kn-neuron/neuroguard/data-acquisition-framework.git"
-reference = "v0.4.0"
-resolved_reference = "70cfd8fc3d4e066142313daef5312cf20d63d047"
+reference = "HEAD"
+resolved_reference = "951f6c5db34a1b48821d3477f236682abc674628"
 
 [[package]]
 name = "debugpy"
@@ -2022,4 +2022,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "facdde1742bf525813b06cae63ea732e444c31641963b0343ae38fb294f00d14"
+content-hash = "2053700b8f6d343a755761ab5694046eba7fd850ecf5ae847f6cb2bf515ce659"
