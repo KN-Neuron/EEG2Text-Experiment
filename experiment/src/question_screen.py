@@ -41,9 +41,7 @@ class QuestionScreen:
             key = chr(ord("A") + i)
             display_text += f"{key}. {option}\n"
 
-        display_text += (
-            "\nWciśnij odpowiednią literę (A, B, C), by wybrać odpowiedź"
-        )
+        display_text += "\nWciśnij odpowiednią literę (A, B, C), by wybrać odpowiedź"
 
         # Create text screen for the question
         question_screen = TextScreen(

@@ -22,7 +22,7 @@ from .constants import (
     NON_SENTENCE_SCREEN_TEXT_COLOR,
     SENTENCE_SCREEN_BACKGROUND_COLOR,
     SENTENCE_SCREEN_TEXT_COLOR,
-    THINKING_SCREEN_TEXT,
+    # THINKING_SCREEN_TEXT,
 )
 from .question_screen import QuestionScreen
 from .sentences import Sentence
@@ -49,11 +49,9 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
         self._is_test_block = is_test_block
         self._logger = logger
 
-        # Track statistics for test blocks
         self._correct_answers = 0
         self._total_questions = 0
 
-        # Set instruction text based on block type
         if block_type == "normal":
             instruction_text = config.normal_reading_instruction_text
         elif block_type == "sentiment":
@@ -63,7 +61,6 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
         else:
             instruction_text = config.continue_screen_text
 
-        # Set up screens
         self._continue_screen = TextScreen(
             gui=self._gui,
             text=instruction_text,
@@ -71,12 +68,12 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             background_color=NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
         )
 
-        self._thinking_screen = TextScreen(
-            gui=self._gui,
-            text=THINKING_SCREEN_TEXT,
-            text_color=NON_SENTENCE_SCREEN_TEXT_COLOR,
-            background_color=NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
-        )
+        # self._thinking_screen = TextScreen(
+        #     gui=self._gui,
+        #     text=THINKING_SCREEN_TEXT,
+        #     text_color=NON_SENTENCE_SCREEN_TEXT_COLOR,
+        #     background_color=NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
+        # )
 
         self._pause_screen = TextScreen(
             gui=self._gui,
@@ -85,7 +82,6 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             background_color=NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
         )
 
-        # Set up event managers
         self._continue_screen_event_manager = KeyPressEventManager(
             gui=self._gui, key=config.continue_screen_advance_key, logger=logger
         )
@@ -93,9 +89,9 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             advance_key=config.sentence_screen_advance_key,
             timeout_millis=config.sentence_screen_timeout_millis,
         )
-        self._build_thinking_screen_event_manager(
-            timeout_millis=config.thinking_screen_timeout_millis,
-        )
+        # self._build_thinking_screen_event_manager(
+        #     timeout_millis=config.thinking_screen_timeout_millis,
+        # )
         self._build_fixation_cross_screen_event_manager(
             timeout_range_start_millis=config.fixation_cross_timeout_range_start_millis,
             timeout_range_end_millis=config.fixation_cross_timeout_range_end_millis,
@@ -105,29 +101,26 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             timeout_millis=config.relax_screen_timeout_millis
         )
 
-        # State variables
         self._was_first_screen_shown = False
         self._was_fixation_cross_shown = False
-        self._was_thinking_screen_shown = False
+        # self._was_thinking_screen_shown = False
         self._was_paused = False
         self._was_relax_screen_shown = False
         self._index = 0
         self._current_sentence = None
         self._show_question = False
 
-        # Determine which sentences should have questions
         self._setup_questions()
 
     def _setup_questions(self):
-        # Determine which sentences will have questions
+
         self._sentences_with_questions = set()
 
         if self._is_test_block:
-            # All test sentences should have questions
+
             self._sentences_with_questions = set(range(len(self._sentences)))
             return
 
-        # For normal blocks, use the question ratio
         total_sentences = len(self._sentences)
 
         if self._block_type == "normal":
@@ -136,10 +129,9 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             question_count = int(
                 total_sentences * self._config.sentiment_question_ratio
             )
-        else:  # audio
+        else:
             question_count = int(total_sentences * self._config.audio_question_ratio)
 
-        # Randomly select which sentences will have questions
         question_indices = random.sample(
             range(total_sentences), min(question_count, total_sentences)
         )
@@ -172,15 +164,15 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             )
         )
 
-    def _build_thinking_screen_event_manager(self, *, timeout_millis: int) -> None:
-        self._thinking_screen_event_manager = FixedTimeoutEventManager(
-            gui=self._gui, timeout_millis=timeout_millis, logger=self._logger
-        )
-        self._thinking_screen_event_manager.register_callback(
-            lambda _: self._eeg_headset.annotate(
-                self._config.thinking_screen_end_annotation
-            )
-        )
+    # def _build_thinking_screen_event_manager(self, *, timeout_millis: int) -> None:
+    #     self._thinking_screen_event_manager = FixedTimeoutEventManager(
+    #         gui=self._gui, timeout_millis=timeout_millis, logger=self._logger
+    #     )
+    #     self._thinking_screen_event_manager.register_callback(
+    #         lambda _: self._eeg_headset.annotate(
+    #             self._config.thinking_screen_end_annotation
+    #         )
+    #     )
 
     def _build_fixation_cross_screen_event_manager(
         self, *, timeout_range_start_millis: int, timeout_range_end_millis: int
@@ -230,12 +222,12 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
         if not self._was_fixation_cross_shown:
             return self._get_fixation_cross_screen()
 
-        if (
-            not self._was_thinking_screen_shown
-            and self._current_sentence
-            and self._block_type == "sentiment"
-        ):
-            return self._get_thinking_screen()
+        # if (
+        #     not self._was_thinking_screen_shown
+        #     and self._current_sentence
+        #     and self._block_type == "sentiment"
+        # ):
+        #     return self._get_thinking_screen()
 
         return self._get_sentence_screen()
 
@@ -307,22 +299,22 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
 
         return screen
 
-    def _get_thinking_screen(self) -> EventfulScreen[None]:
-        self._was_thinking_screen_shown = True
+    # def _get_thinking_screen(self) -> EventfulScreen[None]:
+    #     self._was_thinking_screen_shown = True
 
-        event_manager = self._get_event_manager_with_pause(
-            self._thinking_screen_event_manager
-        )
+    #     event_manager = self._get_event_manager_with_pause(
+    #         self._thinking_screen_event_manager
+    #     )
 
-        screen = EventfulScreen(
-            screen=self._thinking_screen,
-            event_manager=event_manager,
-            screen_show_callback=lambda: self._eeg_headset.annotate(
-                self._config.thinking_screen_start_annotation
-            ),
-        )
+    #     screen = EventfulScreen(
+    #         screen=self._thinking_screen,
+    #         event_manager=event_manager,
+    #         screen_show_callback=lambda: self._eeg_headset.annotate(
+    #             self._config.thinking_screen_start_annotation
+    #         ),
+    #     )
 
-        return screen
+    #     return screen
 
     def _get_sentence_screen(self) -> EventfulScreen[None]:
         self._was_fixation_cross_shown = False
@@ -331,17 +323,15 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             self._current_sentence = self._sentences[self._index]
             self._index += 1
 
-            # Check if this sentence should have a question
             self._show_question = (self._index - 1) in self._sentences_with_questions
 
-            # Create appropriate screen based on sentence type
             if (
                 self._current_sentence.category == "audio"
                 and self._current_sentence.audio_path
             ):
                 return self._get_audio_screen()
             else:
-                # Regular text sentence
+
                 text = self._current_sentence.text
                 screen = TextScreen(
                     gui=self._gui,
@@ -365,7 +355,7 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
                 )
                 return eventful_screen
         else:
-            # Should not reach here due to index check in _get_next
+
             return self._get_relax_screen()
 
     def _get_audio_screen(self) -> EventfulScreen[None]:
