@@ -50,7 +50,7 @@ def run(
     if do_use_mock_headset:
         headset = MockEEGHeadset(logger=logger)
     else:
-        from data_acquisition.eeg_headset.brainaccess import BrainAccessV3Headset
+        from data_acquisition.eeg_headset.brainaccess.brainaccess_v3_headset import BrainAccessV3Headset
         from data_acquisition.eeg_headset.brainaccess.devices import (
             BRAINACCESS_MAXI_32_CHANNEL,
         )

@@ -1,9 +1,9 @@
 from src.run import run
 
-DO_USE_DEBUG_MODE = True
-DO_USE_MOCK_HEADSET = True
+DO_USE_DEBUG_MODE = False
+DO_USE_MOCK_HEADSET = False
 
-BRAINACCESS_CAP_NAME = "BA MAXI 011"
+BRAINACCESS_CAP_NAME = "BA MAXI 009"
 
 
 if __name__ == "__main__":

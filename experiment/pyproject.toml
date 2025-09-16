@@ -28,6 +28,7 @@ data-acquisition-framework = { path = "../data-acquisition-framework", develop =
 black = "^25.1.0"
 isort = "^6.0.1"
 pyright = "^1.1.402"
+multimethod = "^1.8.4"
 
 
 [build-system]
