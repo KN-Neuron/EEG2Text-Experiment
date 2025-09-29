@@ -34,10 +34,7 @@ def load_sentences() -> SentenceSet:
     with open(assets_dir / "sentiment_sentences.json", "r", encoding="utf-8") as file:
         sentiment_sentences_data = json.load(file)
 
-    with open(assets_dir / "audio_sentences.json", "r", encoding="utf-8") as file:
-        audio_sentences_data = json.load(file)
 
-    # Create sentence objects
     normal_sentences = [
         Sentence(
             text=item["text"],
@@ -69,7 +66,7 @@ def load_sentences() -> SentenceSet:
             correct_answer_index=item.get("correct_answer_index"),
             category="audio",
         )
-        for item in audio_sentences_data
+        for item in normal_sentences_data
     ]
 
     # Extract test sentences
@@ -77,12 +74,10 @@ def load_sentences() -> SentenceSet:
     test_sentiment = sentiment_sentences[:10]
     test_audio = audio_sentences[:10]
 
-    # Remove test sentences from main lists
     normal_sentences = normal_sentences[10:]
     sentiment_sentences = sentiment_sentences[10:]
     audio_sentences = audio_sentences[10:]
 
-    # Shuffle sentences
     random.shuffle(normal_sentences)
     random.shuffle(sentiment_sentences)
     random.shuffle(audio_sentences)

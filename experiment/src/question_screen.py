@@ -9,7 +9,8 @@ from data_acquisition.gui.event_types import Key
 from data_acquisition.screens import TextScreen
 
 from .config import Config
-from .constants import SENTENCE_SCREEN_BACKGROUND_COLOR, SENTENCE_SCREEN_TEXT_COLOR
+from .constants import (SENTENCE_SCREEN_BACKGROUND_COLOR,
+                        SENTENCE_SCREEN_TEXT_COLOR)
 
 
 class QuestionScreen:

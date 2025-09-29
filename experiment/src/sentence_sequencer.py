@@ -2,29 +2,28 @@ import random
 from logging import Logger
 
 from data_acquisition.eeg_headset import EEGHeadset
-from data_acquisition.event_manager import (
-    CompositeEventManager,
-    EventManager,
-    FixedTimeoutEventManager,
-    KeyPressEventManager,
-    RandomTimeoutEventManager,
-)
+from data_acquisition.event_manager import (CompositeEventManager,
+                                            EventManager,
+                                            FixedTimeoutEventManager,
+                                            KeyPressEventManager,
+                                            RandomTimeoutEventManager)
 from data_acquisition.eventful_screen import EventfulScreen
 from data_acquisition.gui import Gui
 from data_acquisition.gui.event_types import Key
-from data_acquisition.screens import BlankScreen, FixationCrossScreen, TextScreen
+from data_acquisition.screens import (BlankScreen, FixationCrossScreen,
+                                      TextScreen)
 from data_acquisition.sequencers import SimpleScreenSequencer
 
 from .audio_screen import AudioScreen
 from .config import Config
-from .constants import (
-    NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
-    NON_SENTENCE_SCREEN_TEXT_COLOR,
-    SENTENCE_SCREEN_BACKGROUND_COLOR,
-    SENTENCE_SCREEN_TEXT_COLOR,
-    # THINKING_SCREEN_TEXT,
-)
+from .constants import (NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
+                        NON_SENTENCE_SCREEN_TEXT_COLOR,
+                        SENTENCE_SCREEN_BACKGROUND_COLOR,
+                        SENTENCE_SCREEN_TEXT_COLOR)
 from .question_screen import QuestionScreen
+# --- MODIFICATION START ---
+from .reading_time_analyzer import ReadingTimeAnalyzer
+# --- MODIFICATION END ---
 from .sentences import Sentence
 
 
@@ -37,6 +36,9 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
         config: Config,
         sentences: list[Sentence],
         block_type: str,
+        # --- MODIFICATION START ---
+        reading_time_analyzer: ReadingTimeAnalyzer,
+        # --- MODIFICATION END ---
         is_test_block: bool = False,
         logger: Logger,
     ):
@@ -46,6 +48,9 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
         self._eeg_headset = eeg_headset
         self._config = config
         self._block_type = block_type
+        # --- MODIFICATION START ---
+        self._reading_time_analyzer = reading_time_analyzer
+        # --- MODIFICATION END ---
         self._is_test_block = is_test_block
         self._logger = logger
 
@@ -359,6 +364,27 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             return self._get_relax_screen()
 
     def _get_audio_screen(self) -> EventfulScreen[None]:
+        # --- MODIFICATION START ---
+        sentence_text = self._current_sentence.text
+
+        # Get the average reading time from the analyzer
+        target_duration = self._reading_time_analyzer.get_avg_reading_time(
+            sentence_text
+        )
+
+        if target_duration:
+            self._logger.info(
+                f"Found average reading time for sentence: {target_duration:.2f}s"
+            )
+        else:
+            # If no data exists, estimate based on WPM
+            target_duration = self._reading_time_analyzer.estimate_reading_time_from_wpm(
+                sentence_text
+            )
+            self._logger.info(
+                f"No reading time data found. Estimating duration: {target_duration:.2f}s"
+            )
+        
         audio_screen = AudioScreen(
             gui=self._gui,
             eeg_headset=self._eeg_headset,
@@ -366,9 +392,12 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             audio_path=self._current_sentence.audio_path,
             text=self._current_sentence.text,
             logger=self._logger,
+            target_duration_seconds=target_duration,  # Pass the target duration
         )
+        # --- MODIFICATION END ---
 
         return audio_screen.create_screen()
+
 
     def _get_question_screen(self) -> EventfulScreen[None]:
         def on_answer(is_correct):
@@ -405,3 +434,4 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
 
     def _mark_as_paused(self, _: None) -> None:
         self._was_paused = True
+
