@@ -66,7 +66,6 @@ class AppSequencerBuilder:
 
         sequencers = []
 
-        # Add test blocks first
         test_normal = SentenceSequencer(
             **common_args,
             sentences=sentences.test_normal,
