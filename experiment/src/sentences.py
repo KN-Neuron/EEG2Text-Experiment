@@ -11,7 +11,7 @@ class Sentence:
     options: list[str] = None
     correct_answer_index: int = None
     audio_path: str = None
-    category: str = "normal"  # Can be "normal", "sentiment", "audio"
+    category: str = "normal"
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -27,7 +27,6 @@ class SentenceSet:
 def load_sentences() -> SentenceSet:
     assets_dir = Path(__file__).parent / "assets"
 
-    # Load sentence data from JSON files
     with open(assets_dir / "normal_sentences.json", "r", encoding="utf-8") as file:
         normal_sentences_data = json.load(file)
 
@@ -69,7 +68,6 @@ def load_sentences() -> SentenceSet:
         for item in normal_sentences_data
     ]
 
-    # Extract test sentences
     test_normal = normal_sentences[:10]
     test_sentiment = sentiment_sentences[:10]
     test_audio = audio_sentences[:10]

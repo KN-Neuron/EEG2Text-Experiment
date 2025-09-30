@@ -10,6 +10,7 @@ from data_acquisition.eventful_screen import EventfulScreen
 from data_acquisition.gui import Gui
 from data_acquisition.screens import TextScreen
 # You need pydub for this: pip install pydub
+# Also install audiostretchy: pip install audiostretchy
 from pydub import AudioSegment
 from pydub.exceptions import CouldntDecodeError
 
@@ -96,45 +97,61 @@ class AudioScreen:
             try:
                 audio = AudioSegment.from_file(found_path)
                 original_duration_sec = len(audio) / 1000.0
-                playback_speed = 1.0
 
+                # Use stretch_ratio for time stretching (ratio >1 slows down, <1 speeds up)
+                stretch_ratio = 1.0
                 if self._target_duration_seconds and self._target_duration_seconds > 0:
-                    playback_speed = original_duration_sec / self._target_duration_seconds
+                    stretch_ratio = self._target_duration_seconds / original_duration_sec
                     self._logger.info(
-                        f"Original audio duration: {original_duration_sec:.2f}s, Target: {self._target_duration_seconds:.2f}s. Calculated speed: {playback_speed:.2f}x"
+                        f"Original audio duration: {original_duration_sec:.2f}s, Target: {self._target_duration_seconds:.2f}s. Calculated stretch ratio: {stretch_ratio:.2f}x"
                     )
                 else:
                     self._logger.info(
                         f"Playing at normal speed. Original duration: {original_duration_sec:.2f}s"
                     )
 
-                # --- CHANGE #1: SAFETY CLAMP ---
-                # Clamp speed to a reasonable range to avoid errors or distorted audio
-                if not 0.5 <= playback_speed <= 4.0:
-                    new_speed = max(0.5, min(playback_speed, 4.0))
+                # Clamp ratio to audiostretchy's supported range (0.25 to 4.0)
+                if not 0.25 <= stretch_ratio <= 4.0:
+                    new_ratio = max(0.25, min(stretch_ratio, 4.0))
                     self._logger.warning(
-                        f"Playback speed {playback_speed:.2f}x is outside the safe range (0.5x - 4.0x). Clamping to {new_speed:.2f}x."
+                        f"Stretch ratio {stretch_ratio:.2f}x is outside the supported range (0.25x - 4.0x). Clamping to {new_ratio:.2f}x."
                     )
-                    playback_speed = new_speed
+                    stretch_ratio = new_ratio
 
-                # --- CHANGE #2: HIGHER QUALITY SPEEDUP ---
-                # Use chunk_size and crossfade to improve audio quality when sped up.
-                modified_audio = audio.speedup(playback_speed=playback_speed, chunk_size=150, crossfade=25)
-                
+                import os
+
+                from audiostretchy.stretch import stretch_audio
+
+                # Temporary files for audiostretchy
+                temp_input_path = "temp_input.wav"
+                temp_output_path = "temp_output.wav"
+                audio.export(temp_input_path, format="wav")
+
+                # Apply time stretching
+                stretch_audio(temp_input_path, temp_output_path, ratio=stretch_ratio)
+                self._logger.info(f"Applied time stretch at {stretch_ratio:.2f}x without pitch change.")
+
+                # Load the stretched audio back into pydub
+                modified_audio = AudioSegment.from_file(temp_output_path)
+
+                # Clean up temp files
+                os.remove(temp_input_path)
+                os.remove(temp_output_path)
+
                 mem_file = BytesIO()
                 modified_audio.export(mem_file, format="wav")
                 mem_file.seek(0)
 
                 if not pygame.mixer.get_init():
                     self._logger.info("Initializing pygame mixer")
-                    # Initialize with the audio's actual frame rate for better quality
+                    # Initialize with the modified audio's properties
                     pygame.mixer.init(frequency=modified_audio.frame_rate, size=-16, channels=modified_audio.channels, buffer=2048)
 
                 pygame.mixer.music.load(mem_file)
                 pygame.mixer.music.set_volume(1)
                 pygame.mixer.music.play()
                 self._is_audio_played = True
-                self._logger.info(f"Playing audio: {found_path} at {playback_speed:.2f}x speed.")
+                self._logger.info(f"Playing stretched audio: {found_path} at {stretch_ratio:.2f}x ratio.")
 
             except (pygame.error, CouldntDecodeError) as e:
                 self._logger.error(f"Error processing or playing audio {found_path}: {str(e)}")

@@ -19,10 +19,7 @@ from .constants import (BLOCK_COUNT, DEBUG_BLOCK_COUNT,
                         LOGGING_MESSAGE_FORMAT, RELAX_SCREEN_TIMEOUT_MILLIS,
                         SENTENCES_IN_BLOCK_COUNT, SURVEY_CONFIG_PATH,
                         SURVEY_PARTICIPANT_ID_KEY)
-# --- MODIFICATION START ---
 from .reading_time_analyzer import ReadingTimeAnalyzer
-
-# --- MODIFICATION END ---
 
 
 def run(
@@ -82,10 +79,7 @@ def run(
         ),
     )
 
-    # --- MODIFICATION START ---
-    # Instantiate the analyzer and pass it the log directory
     reading_analyzer = ReadingTimeAnalyzer(log_directory=log_dir, logger=logger)
-    # --- MODIFICATION END ---
 
 
     app_sequencer_builder = AppSequencerBuilder(
@@ -94,9 +88,7 @@ def run(
         headset=headset,
         participant_id=participant_id,
         logger=logger,
-        # --- MODIFICATION START ---
         reading_time_analyzer=reading_analyzer,
-        # --- MODIFICATION END ---
     )
     sequencer = app_sequencer_builder.set_up_app_sequencer()
 

@@ -7,8 +7,6 @@ from datetime import datetime
 from logging import Logger
 from pathlib import Path
 
-# A reasonable default if no data exists for a sentence.
-# Average reading speed for adults is ~200-250 WPM.
 DEFAULT_WPM = 225
 
 
@@ -65,7 +63,6 @@ class ReadingTimeAnalyzer:
                         sentence_start_info["last_text"] = text
                     continue
 
-                # Look for annotations
                 annotation_match = annotation_pattern.search(line)
                 if annotation_match:
                     timestamp_str = annotation_match.group(1)
@@ -80,7 +77,6 @@ class ReadingTimeAnalyzer:
                         duration = (timestamp - sentence_start_info["time"]).total_seconds()
                         sentence_text = sentence_start_info["text"]
                         
-                        # Only record reasonable durations
                         if 0.5 < duration < 30.0:
                              self.reading_times[sentence_text].append(duration)
                         
@@ -106,6 +102,5 @@ class ReadingTimeAnalyzer:
         """
         word_count = len(sentence_text.split())
         if word_count == 0:
-            return 1.0  # Avoid division by zero, return a short duration
-        # Time (seconds) = (word_count / WPM) * 60
+            return 1.0  
         return (word_count / DEFAULT_WPM) * 60
