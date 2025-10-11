@@ -43,7 +43,6 @@ class AudioScreen:
     def create_screen(self) -> EventfulScreen[None]:
         import pygame
 
-        # We will display the sentence text on screen while the audio plays
         display_text = self._text
 
         audio_screen = TextScreen(
@@ -76,6 +75,7 @@ class AudioScreen:
             module_path = Path(__file__).parent / "assets" / self._audio_path
             cwd_path = Path.cwd() / "assets" / self._audio_path
 
+            print(cwd_path, module_path, direct_path)
             paths_to_try = [direct_path, module_path, cwd_path]
 
             found_path = None
@@ -89,10 +89,8 @@ class AudioScreen:
                 self._logger.error(f"Audio file not found: {self._audio_path}")
                 self._logger.error(f"Tried paths: {[str(p) for p in paths_to_try]}")
                 self._is_audio_played = False
-                audio_screen.set_text(
-                    f"Nie można znaleźć pliku audio.\n{self._audio_path}\nWciśnij spację, aby kontynuować."
-                )
-                return
+                # Instead of trying to update existing screen, return a new screen with error
+                return False, f"Nie można znaleźć pliku audio.\n{self._audio_path}\nWciśnij spację, aby kontynuować."
 
             try:
                 audio = AudioSegment.from_file(found_path)
@@ -110,7 +108,6 @@ class AudioScreen:
                         f"Playing at normal speed. Original duration: {original_duration_sec:.2f}s"
                     )
 
-                # Clamp ratio to audiostretchy's supported range (0.25 to 4.0)
                 if not 0.25 <= stretch_ratio <= 4.0:
                     new_ratio = max(0.25, min(stretch_ratio, 4.0))
                     self._logger.warning(
@@ -122,7 +119,6 @@ class AudioScreen:
 
                 from audiostretchy.stretch import stretch_audio
 
-                # Temporary files for audiostretchy
                 temp_input_path = "temp_input.wav"
                 temp_output_path = "temp_output.wav"
                 audio.export(temp_input_path, format="wav")
@@ -131,10 +127,8 @@ class AudioScreen:
                 stretch_audio(temp_input_path, temp_output_path, ratio=stretch_ratio)
                 self._logger.info(f"Applied time stretch at {stretch_ratio:.2f}x without pitch change.")
 
-                # Load the stretched audio back into pydub
                 modified_audio = AudioSegment.from_file(temp_output_path)
 
-                # Clean up temp files
                 os.remove(temp_input_path)
                 os.remove(temp_output_path)
 
@@ -144,7 +138,6 @@ class AudioScreen:
 
                 if not pygame.mixer.get_init():
                     self._logger.info("Initializing pygame mixer")
-                    # Initialize with the modified audio's properties
                     pygame.mixer.init(frequency=modified_audio.frame_rate, size=-16, channels=modified_audio.channels, buffer=2048)
 
                 pygame.mixer.music.load(mem_file)
@@ -152,25 +145,36 @@ class AudioScreen:
                 pygame.mixer.music.play()
                 self._is_audio_played = True
                 self._logger.info(f"Playing stretched audio: {found_path} at {stretch_ratio:.2f}x ratio.")
+                return True, None
 
             except (pygame.error, CouldntDecodeError) as e:
                 self._logger.error(f"Error processing or playing audio {found_path}: {str(e)}")
                 self._is_audio_played = False
-                audio_screen.set_text(
-                    f"Błąd odtwarzania pliku audio.\n{str(e)}\nWciśnij spację, aby kontynuować."
-                )
+                return False, f"Błąd odtwarzania pliku audio.\n{str(e)}\nWciśnij spację, aby kontynuować."
             except Exception as e:
                 self._logger.error(f"Unexpected error playing audio: {str(e)}")
                 self._is_audio_played = False
-                audio_screen.set_text(
-                    f"Nieoczekiwany błąd.\n{str(e)}\nWciśnij spację, aby kontynuować."
+                return False, f"Nieoczekiwany błąd.\n{str(e)}\nWciśnij spację, aby kontynuować."
+
+        screen = None
+
+        # Create a wrapper function for screen_show_callback
+        def on_screen_show():
+            nonlocal screen
+            success, error_message = play_audio()
+            if not success and error_message:
+                error_screen = TextScreen(
+                    gui=self._gui,
+                    text=error_message,
+                    text_color=SENTENCE_SCREEN_TEXT_COLOR,
+                    background_color=SENTENCE_SCREEN_BACKGROUND_COLOR,
                 )
+                screen.screen = error_screen
 
         screen = EventfulScreen(
             screen=audio_screen,
             event_manager=key_event_manager,
-            screen_show_callback=play_audio,
+            screen_show_callback=on_screen_show,
         )
 
         return screen
-

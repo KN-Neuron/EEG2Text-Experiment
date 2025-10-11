@@ -69,6 +69,6 @@ class Config:
     relax_screen_start_annotation: str = RELAX_SCREEN_START_ANNOTATION
     relax_screen_end_annotation: str = RELAX_SCREEN_END_ANNOTATION
 
-    normal_question_ratio: float = 2.0 / 10.0
-    sentiment_question_ratio: float = 2.0 / 10.0
-    audio_question_ratio: float = 2.0 / 10.0
+    normal_question_ratio: float = 2.0 / 3.0
+    sentiment_question_ratio: float = 2.0 / 3.0
+    audio_question_ratio: float = 2.0 / 3.0
