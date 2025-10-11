@@ -1,15 +1,20 @@
 [
   {
-    "text": "Film był fantastyczny, wszyscy wyszli z kina zachwyceni.",
-    "question": "Jaki był odbiór filmu?",
-    "options": ["Negatywny", "Neutralny", "Pozytywny"],
-    "correct_answer_index": 2
+    "text": "Jego słowa były jak balsam dla mojej duszy, poczułam ogromną ulgę.",
+    "question": "Jakie uczucie wywołały słowa?",
+    "options": ["Złość", "Ulgę", "Smutek"],
+    "correct_answer_index": 1
   },
   {
-    "text": "Pogoda zepsuła plany weekendowe, cały dzień padało.",
-    "question": "Jak pogoda wpłynęła na plany?",
-    "options": ["Pozytywnie", "Negatywnie", "Nie miała wpływu"],
+    "text": "Byłem dumny, widząc, jak odbiera dyplom ukończenia studiów.",
+    "question": "Jakie emocje towarzyszyły obserwowaniu ceremonii?",
+    "options": ["Zazdrość", "Duma", "Rozczarowanie"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Perspektywa samotnego wieczoru w domu napawała mnie przygnębieniem.",
+    "question": "Jak perspektywa wieczoru wpłynęła na nastrój?",
+    "options": ["Pozytywnie", "Negatywnie", "Neutralnie"],
     "correct_answer_index": 1
   }
 ]
-
