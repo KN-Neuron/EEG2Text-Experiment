@@ -8,12 +8,13 @@ import random
 from typing import List, Dict, Optional
 import time
 import json
-import dataclasses # <--- ADDED: To convert Sentence objects to dictionaries
+import dataclasses
+from datetime import datetime
 from gui import ExperimentGUI
 from stimuli import Sentence, StimulusManager
 from audio_manager import AudioManager
 
-# --- MOCK EEG HEADSET (Unchanged) ---
+# --- MOCK EEG HEADSET ---
 class MockEEGHeadset:
     def __init__(self, logger):
         self.logger = logger
@@ -45,7 +46,7 @@ class MockEEGHeadset:
         return self.recording
 
 
-# --- EEG2TextExperiment Class (MODIFIED) ---
+# --- EEG2TextExperiment Class ---
 class EEG2TextExperiment:
     def __init__(self, participant_id: str, logger: logging.Logger,
                  debug_mode: bool = False, use_mock_eeg: bool = False):
@@ -58,6 +59,9 @@ class EEG2TextExperiment:
         self.stimulus_manager = StimulusManager(logger, debug_mode)
         self.audio_manager = AudioManager(logger)
         self.reading_times: Dict[str, float] = {}
+        
+        # Store all trial data for comprehensive dataset
+        self.trial_data: List[Dict] = []
         
         if debug_mode:
             self.config = {
@@ -72,6 +76,7 @@ class EEG2TextExperiment:
                 'post_reading_delay_ms': 100,
                 'memory_recall_time_ms': 6000,
                 'rest_duration_seconds': 5,
+                'question_ratio': 0.5,  # 50% of sentences will have questions in debug mode
             }
         else:
             self.config = {
@@ -86,6 +91,7 @@ class EEG2TextExperiment:
                 'post_reading_delay_ms': 1000,
                 'memory_recall_time_ms': 6000,
                 'rest_duration_seconds': 30,
+                'question_ratio': 0.2,  # 20% of sentences will have questions
             }
             
         self.gui = ExperimentGUI(logger, debug_mode)
@@ -121,19 +127,53 @@ class EEG2TextExperiment:
                 self.logger.error("Exiting due to EEG connection failure. Run with --mock-eeg to bypass.")
                 raise
 
-    # --- ADDED HELPER TO SAVE STIMULI ---
-    def _save_stimuli_for_block(self, file_path: Path, sentences: List[Sentence]):
-        """Saves the list of sentences for a block to a JSON file."""
-        stimuli_file = file_path.with_suffix('.json')
-        # Convert list of Sentence objects to a list of dictionaries
-        sentences_as_dicts = [dataclasses.asdict(s) for s in sentences]
+    def _save_block_metadata(self, block_file_path: Path, sentences: List[Sentence], 
+                            block_type: str, block_num: int, trial_data: List[Dict]):
+        """
+        Saves comprehensive metadata for a block including all sentences and trial information.
+        
+        Args:
+            block_file_path: Path to the .fif file
+            sentences: List of sentences presented in this block
+            block_type: Type of block (normal, sentiment, reading_and_listening, memory)
+            block_num: Block number
+            trial_data: List of dictionaries containing trial-by-trial data
+        """
+        metadata_file = block_file_path.with_suffix('.json')
+        
+        # Convert sentences to dictionaries
+        sentences_data = [dataclasses.asdict(s) for s in sentences]
+        
+        metadata = {
+            'participant_id': self.participant_id,
+            'block_type': block_type,
+            'block_number': block_num,
+            'timestamp': datetime.now().isoformat(),
+            'config': self.config,
+            'eeg_file': block_file_path.name,
+            'num_sentences': len(sentences),
+            'sentences': sentences_data,
+            'trials': trial_data
+        }
+        
         try:
-            with open(stimuli_file, 'w', encoding='utf-8') as f:
-                json.dump(sentences_as_dicts, f, indent=2, ensure_ascii=False)
-            self.logger.info(f"Saved stimuli for block to {stimuli_file}")
+            with open(metadata_file, 'w', encoding='utf-8') as f:
+                json.dump(metadata, f, indent=2, ensure_ascii=False)
+            self.logger.info(f"Saved block metadata to {metadata_file}")
         except Exception as e:
-            self.logger.error(f"Failed to save stimuli file {stimuli_file}: {e}")
+            self.logger.error(f"Failed to save block metadata {metadata_file}: {e}")
 
+    def _should_ask_question(self, sentence: Sentence) -> bool:
+        """
+        Determine if a question should be asked for this sentence based on question_ratio.
+        Only asks questions if the sentence has question data defined.
+        """
+        # Only ask if sentence has question data
+        if not sentence.question or not sentence.options or sentence.correct_answer_index is None:
+            return False
+        
+        # Use the configured ratio
+        return random.random() < self.config['question_ratio']
 
     def run(self):
         try:
@@ -185,50 +225,45 @@ class EEG2TextExperiment:
         finally:
             self.cleanup()
 
-    # --- run_trial_block and run_main_block_sequence (Unchanged) ---
     def run_trial_block(self, block_type: str):
         self.logger.info(f"Starting PRACTICE block: {block_type}")
         instructions = {
-            'normal': "PRACTICE: Normal Reading\n\nRead the sentences that appear on the screen.\nPress SPACE when you have finished reading.\n\nPress SPACE to begin.",
-            'sentiment': "PRACTICE: Emotional Reading\n\nRead the sentences and imagine the scenario being described.\nPress SPACE when you are done.\n\nPress SPACE to begin.",
-            'reading_and_listening': "PRACTICE: Reading and Listening\n\nRead the sentence on the screen while listening to the audio.\nPress SPACE when the audio finishes to continue.\n\nPress SPACE to begin."
+            'normal': "PRACTICE: Normal Reading\n\nRead each sentence and press SPACE when finished.\n\nPress SPACE to begin practice.",
+            'sentiment': "PRACTICE: Emotional Reading\n\nImagine yourself in the described scenario.\nFeel the emotions.\n\nPress SPACE when you're immersed in the feeling.\n\nPress SPACE to begin practice.",
+            'reading_and_listening': "PRACTICE: Reading and Listening\n\nYou will read and simultaneously listen to sentences.\nPress SPACE when finished.\n\nPress SPACE to begin practice."
         }
         self.gui.show_instruction(instructions[block_type])
         
-        sentences = self.stimulus_manager.get_sentences(
-            'listening' if block_type == 'reading_and_listening' else block_type,
-            self.config['trial_block_size'],
-            is_trial=True
-        )
+        if block_type == 'reading_and_listening':
+            sentences = self.stimulus_manager.get_sentences('normal', self.config['trial_block_size'], is_trial=True)
+        else:
+            sentences = self.stimulus_manager.get_sentences(block_type, self.config['trial_block_size'], is_trial=True)
+
         for i, sentence in enumerate(sentences):
-            self.logger.info(f"Practice Trial {i+1}/{len(sentences)}: {block_type}")
-            fixation_duration = random.randint(
-                self.config['fixation_min_ms'],
-                self.config['fixation_max_ms']
-            )
-            self.gui.show_fixation(fixation_duration)
+            self.logger.info(f"Practice trial {i+1}/{len(sentences)}")
+            jitter_ms = random.randint(self.config['fixation_min_ms'], self.config['fixation_max_ms'])
+            self.gui.show_fixation(jitter_ms)
             
             if block_type == "reading_and_listening":
                 word_count = len(sentence.text.split())
-                estimated_time = (word_count / 150.0) * 60.0 
+                estimated_time = (word_count / 150.0) * 60.0
                 self.present_reading_and_listening_trial(sentence, estimated_time, is_practice=True)
             else:
                 self.present_reading_trial(sentence, block_type, is_practice=True)
-            self.gui.show_blank(1000)
             
-        self.gui.show_message("Practice complete.\nThe main task will now begin.\n\nPress SPACE to continue.")
-        self.logger.info(f"Practice block for {block_type} completed")
+            self.gui.show_blank(1000)
+        
+        self.gui.show_message("Practice complete!\n\nPress SPACE to continue to the main experiment.")
 
-    def run_main_block_sequence(self, block_type: str, num_mini_blocks: int, start_block_num: int) -> int:
-        current_block_num = start_block_num
-        for i in range(num_mini_blocks):
-            current_block_num += 1
+    def run_main_block_sequence(self, block_type: str, num_blocks: int, 
+                                current_block_num: int) -> int:
+        for i in range(num_blocks):
             self.run_experimental_block(block_type, current_block_num, i + 1)
-            if i < num_mini_blocks - 1:
+            current_block_num += 1
+            if i < num_blocks - 1:
                 self.gui.show_rest(self.config['rest_duration_seconds'] * 1000)
         return current_block_num
 
-    # --- run_experimental_block (MODIFIED) ---
     def run_experimental_block(self, block_type: str, global_block_num: int, type_block_num: int):
         self.logger.info(f"Starting MAIN block {global_block_num}: {block_type} #{type_block_num}")
         instructions = {
@@ -249,15 +284,24 @@ class EEG2TextExperiment:
 
         eeg_file = self.data_dir / f"block_{global_block_num:02d}_{block_type}_{type_block_num}.fif"
         
-        # ADDED: Save the sentences for this block
-        self._save_stimuli_for_block(eeg_file, sentences)
+        # Track trial data for this block
+        block_trial_data = []
         
         self.eeg.start_recording(str(eeg_file))
         self.eeg.annotate(f"BLOCK_START_{block_type}_#{type_block_num}")
         try:
             for i, sentence in enumerate(sentences):
                 self.logger.info(f" Trial {i+1}/{len(sentences)} in block {global_block_num}")
+                
+                trial_info = {
+                    'trial_number': i + 1,
+                    'sentence_text': sentence.text,
+                    'sentence_category': sentence.category,
+                    'timestamp': datetime.now().isoformat()
+                }
+                
                 jitter_ms = random.randint(self.config['fixation_min_ms'], self.config['fixation_max_ms'])
+                trial_info['fixation_duration_ms'] = jitter_ms
                 self.gui.show_fixation(jitter_ms)
                 self.eeg.annotate("FIXATION")
                 
@@ -267,9 +311,33 @@ class EEG2TextExperiment:
                         word_count = len(sentence.text.split())
                         reading_time = (word_count / 150.0) * 60.0 
                         self.logger.warning(f"No reading time for '{sentence.text[:30]}...'. Estimating: {reading_time:.2f}s")
-                    self.present_reading_and_listening_trial(sentence, reading_time)
+                    trial_info['target_audio_duration_s'] = reading_time
+                    self.present_reading_and_listening_trial(sentence, reading_time, trial_info)
                 else:
-                    self.present_reading_trial(sentence, block_type)
+                    self.present_reading_trial(sentence, block_type, trial_info=trial_info)
+                
+                # Ask question based on ratio
+                if self._should_ask_question(sentence):
+                    self.logger.info(f"Asking question for trial {i+1}")
+                    self.eeg.annotate(f"QUESTION_START_trial_{i+1}")
+                    
+                    selected_answer = self.gui.show_question(sentence.question, sentence.options)
+                    is_correct = (selected_answer == sentence.correct_answer_index)
+                    
+                    trial_info['question_asked'] = True
+                    trial_info['question'] = sentence.question
+                    trial_info['options'] = sentence.options
+                    trial_info['correct_answer_index'] = sentence.correct_answer_index
+                    trial_info['selected_answer_index'] = selected_answer
+                    trial_info['answer_correct'] = is_correct
+                    
+                    self.eeg.annotate(f"QUESTION_END_trial_{i+1}_answer_{selected_answer}_correct_{is_correct}")
+                    self.logger.info(f"Answer: {selected_answer}, Correct: {is_correct}")
+                else:
+                    trial_info['question_asked'] = False
+                
+                block_trial_data.append(trial_info)
+                self.trial_data.append(trial_info)
                 
                 self.gui.show_blank(1000)
         finally:
@@ -278,10 +346,12 @@ class EEG2TextExperiment:
                 self.logger.info(f"Successfully stopped recording and saved data to {eeg_file}")
             else:
                 self.logger.error(f"Failed to stop/save recording for {eeg_file}")
+            
+            # Save block metadata
+            self._save_block_metadata(eeg_file, sentences, block_type, global_block_num, block_trial_data)
 
-
-    # --- present_reading_trial and present_reading_and_listening_trial (Unchanged) ---
-    def present_reading_trial(self, sentence: Sentence, block_type: str, is_practice: bool = False):
+    def present_reading_trial(self, sentence: Sentence, block_type: str, 
+                            is_practice: bool = False, trial_info: Optional[Dict] = None):
         if not is_practice:
             self.eeg.annotate(f"SENTENCE_START_{block_type}")
         
@@ -289,6 +359,9 @@ class EEG2TextExperiment:
         self.gui.show_sentence(sentence.text)
         self.gui.wait_for_space()
         reading_time = time.time() - start_time
+        
+        if trial_info:
+            trial_info['reading_time_s'] = reading_time
         
         if block_type == "normal" and not is_practice:
             self.reading_times[sentence.text] = reading_time
@@ -298,7 +371,8 @@ class EEG2TextExperiment:
             self.eeg.annotate(f"SENTENCE_END_{block_type}")
         self.gui.clear()
 
-    def present_reading_and_listening_trial(self, sentence: Sentence, target_duration: float, is_practice: bool = False):
+    def present_reading_and_listening_trial(self, sentence: Sentence, target_duration: float, 
+                                           trial_info: Optional[Dict] = None, is_practice: bool = False):
         if not is_practice:
             self.eeg.annotate("DELAY_START")
             self.gui.show_blank(self.config['post_reading_delay_ms'])
@@ -306,13 +380,22 @@ class EEG2TextExperiment:
 
         audio_file = self.audio_manager.get_audio(sentence.text, sentence.audio_path, target_duration)
         
+        if trial_info:
+            trial_info['audio_file'] = str(audio_file)
+        
         if not is_practice:
             self.eeg.annotate("READING_LISTENING_START")
         
+        start_time = time.time()
         self.gui.show_sentence(sentence.text)
         self.audio_manager.start_playing(audio_file)
         
         self.gui.wait_for_space()
+        actual_duration = time.time() - start_time
+        
+        if trial_info:
+            trial_info['actual_duration_s'] = actual_duration
+        
         if self.audio_manager.is_playing():
             self.audio_manager.stop()
         
@@ -320,7 +403,6 @@ class EEG2TextExperiment:
             self.eeg.annotate("READING_LISTENING_END")
         self.gui.clear()
 
-    # --- run_memory_task (MODIFIED) ---
     def run_memory_task(self):
         self.logger.info("Starting MEMORY RECALL task")
         self.gui.show_instruction(
@@ -337,14 +419,20 @@ class EEG2TextExperiment:
 
         eeg_file = self.data_dir / "memory_task.fif"
         
-        # ADDED: Save the sentences for this block
-        self._save_stimuli_for_block(eeg_file, memory_sentences)
+        memory_trial_data = []
 
         self.eeg.start_recording(str(eeg_file))
         self.eeg.annotate("MEMORY_TASK_START")
         try:
             for i, sentence in enumerate(memory_sentences):
                 self.logger.info(f"Memory trial {i+1}/{len(memory_sentences)}")
+                
+                trial_info = {
+                    'trial_number': i + 1,
+                    'sentence_text': sentence.text,
+                    'sentence_category': sentence.category,
+                    'timestamp': datetime.now().isoformat()
+                }
                 
                 self.eeg.annotate(f"MEMORY_STUDY_START_{i+1}")
                 self.gui.show_sentence(sentence.text)
@@ -359,23 +447,26 @@ class EEG2TextExperiment:
                 self.gui.show_blank(self.config['memory_recall_time_ms'] - 1000)
                 self.eeg.annotate(f"MEMORY_RECALL_END_{i+1}")
                 self.gui.show_blank(1000)
+                
+                trial_info['recall_duration_ms'] = self.config['memory_recall_time_ms']
+                memory_trial_data.append(trial_info)
+                self.trial_data.append(trial_info)
         finally:
             self.eeg.annotate("MEMORY_TASK_END")
             if self.eeg.stop_recording():
                 self.logger.info(f"Successfully stopped recording and saved memory task data to {eeg_file}")
             else:
                 self.logger.error(f"Failed to stop/save recording for {eeg_file}")
+            
+            # Save memory task metadata
+            self._save_block_metadata(eeg_file, memory_sentences, "memory", 0, memory_trial_data)
 
-
-    # --- save_reading_times (Unchanged) ---
     def save_reading_times(self):
-        if not self.reading_times:
-            return
-        times_file = self.data_dir / "reading_times.json"
-        
         if not self.reading_times:
             self.logger.info("No reading times recorded, skipping save.")
             return
+            
+        times_file = self.data_dir / "reading_times.json"
 
         mean_time = sum(self.reading_times.values()) / len(self.reading_times)
         min_time = min(self.reading_times.values())
@@ -394,12 +485,39 @@ class EEG2TextExperiment:
             json.dump(data, f, indent=2, ensure_ascii=False)
         self.logger.info(f"Saved {len(self.reading_times)} reading times to {times_file}")
 
+    def save_experiment_summary(self):
+        """Save a comprehensive summary of the entire experiment."""
+        summary_file = self.data_dir / "experiment_summary.json"
+        
+        # Calculate statistics
+        questions_asked = sum(1 for trial in self.trial_data if trial.get('question_asked', False))
+        correct_answers = sum(1 for trial in self.trial_data if trial.get('answer_correct', False))
+        
+        summary = {
+            'participant_id': self.participant_id,
+            'experiment_timestamp': datetime.now().isoformat(),
+            'config': self.config,
+            'total_trials': len(self.trial_data),
+            'questions_asked': questions_asked,
+            'questions_correct': correct_answers,
+            'accuracy': correct_answers / questions_asked if questions_asked > 0 else 0,
+            'all_trials': self.trial_data
+        }
+        
+        try:
+            with open(summary_file, 'w', encoding='utf-8') as f:
+                json.dump(summary, f, indent=2, ensure_ascii=False)
+            self.logger.info(f"Saved experiment summary to {summary_file}")
+        except Exception as e:
+            self.logger.error(f"Failed to save experiment summary: {e}")
+
     def cleanup(self):
         if self.is_cleaned_up:
             return
         self.is_cleaned_up = True
         self.logger.info("Cleaning up...")
         self.save_reading_times()
+        self.save_experiment_summary()
         if self.eeg:
             try:
                 if self.eeg.is_recording():

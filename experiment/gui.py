@@ -20,7 +20,9 @@ class ExperimentGUI:
         if not debug_mode:
             self.root.config(cursor="none")
         
-        self.root.configure(bg='white')
+        # Changed background from white to a comfortable gray
+        self.bg_color = '#D3D3D3'  # Light gray - easier on the eyes
+        self.root.configure(bg=self.bg_color)
         
         self.root.update()
         
@@ -43,7 +45,7 @@ class ExperimentGUI:
             self.root,
             width=self.screen_width,
             height=self.screen_height,
-            bg='white',
+            bg=self.bg_color,
             highlightthickness=0
         )
         self.canvas.pack(expand=True, fill='both')
@@ -147,6 +149,57 @@ class ExperimentGUI:
             self.root.mainloop()
         else:
             self.wait_for_space()
+    
+    def show_question(self, question: str, options: List[str]) -> int:
+        """Display a multiple choice question and return the selected option index."""
+        self.clear()
+        
+        # Display question at the top
+        question_y = self.screen_height // 4
+        self.canvas.create_text(
+            self.screen_width // 2,
+            question_y,
+            text=question,
+            font=self.instruction_font,
+            fill='black',
+            justify='center',
+            width=self.screen_width * 0.9
+        )
+        
+        # Display options with numbers
+        option_start_y = self.screen_height // 2
+        option_spacing = 80
+        
+        for i, option in enumerate(options):
+            y_pos = option_start_y + (i * option_spacing)
+            self.canvas.create_text(
+                self.screen_width // 2,
+                y_pos,
+                text=f"{i+1}. {option}",
+                font=self.instruction_font,
+                fill='black',
+                justify='left'
+            )
+        
+        # Instructions at bottom
+        instruction_y = self.screen_height - 100
+        self.canvas.create_text(
+            self.screen_width // 2,
+            instruction_y,
+            text="Press the number key (1-{}) for your answer".format(len(options)),
+            font=font.Font(family='Arial', size=self.instruction_font.cget('size') // 2),
+            fill='black',
+            justify='center'
+        )
+        
+        self.root.update()
+        
+        # Wait for number key press
+        valid_keys = [str(i+1) for i in range(len(options))]
+        key = self.wait_for_key(valid_keys)
+        
+        # Return the index (0-based)
+        return int(key) - 1 if key else 0
             
     def show_instruction_overlay(self, text: str):
         y_pos = self.screen_height - 120
@@ -154,7 +207,7 @@ class ExperimentGUI:
         self.canvas.create_rectangle(
             0, y_pos - 20,
             self.screen_width, self.screen_height,
-            fill='white',
+            fill=self.bg_color,
             outline=''
         )
         self.canvas.create_text(
