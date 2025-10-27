@@ -1,4 +1,4 @@
-# gui.py
+# gui.py - IMPROVED VERSION
 
 import tkinter as tk
 from tkinter import font
@@ -15,12 +15,11 @@ class ExperimentGUI:
         
         self.root.attributes('-fullscreen', True)
         self.logger.info("Fullscreen mode enabled")
-
         
         if not debug_mode:
             self.root.config(cursor="none")
         
-        # Changed background from white to a comfortable gray
+        # Comfortable gray background
         self.bg_color = '#D3D3D3'  # Light gray - easier on the eyes
         self.root.configure(bg=self.bg_color)
         
@@ -30,14 +29,17 @@ class ExperimentGUI:
         self.screen_height = self.root.winfo_height()
         self.logger.info(f"GUI initialized with screen size: {self.screen_width}x{self.screen_height}")
         
-        # Make text MUCH larger - about 1/8 of screen height
+        # Font sizes
         base_size = min(self.screen_width, self.screen_height) // 8
         self.text_font = font.Font(family='Arial', size=base_size, weight='bold')
         self.instruction_font = font.Font(family='Arial', size=base_size // 2, weight='bold')
+        self.small_instruction_font = font.Font(family='Arial', size=base_size // 3)
         
-        # Make fixation cross smaller - about 1/10 of screen height
         fixation_size = min(self.screen_width, self.screen_height) // 10
         self.fixation_font = font.Font(family='Arial', size=fixation_size, weight='bold')
+        
+        # Feedback font
+        self.feedback_font = font.Font(family='Arial', size=base_size // 2, weight='bold')
         
         self.logger.info(f"Font sizes - Text: {base_size}, Instruction: {base_size//2}, Fixation: {fixation_size}")
         
@@ -65,6 +67,58 @@ class ExperimentGUI:
         )
         self.root.update()
         self.wait_for_space()
+
+    def show_colored_instruction(self, title: str, text: str, color: str = '#E8F4F8'):
+        """
+        Show instruction screen with colored background
+        
+        Args:
+            title: Title text (e.g., "NORMAL READING")
+            text: Instruction text
+            color: Background color hex code
+        """
+        self.clear()
+        
+        # Set colored background
+        self.canvas.configure(bg=color)
+        
+        # Title at top (larger, bold)
+        title_y = self.screen_height // 5
+        self.canvas.create_text(
+            self.screen_width // 2,
+            title_y,
+            text=title,
+            font=font.Font(family='Arial', size=self.instruction_font.cget('size') + 10, weight='bold'),
+            fill='#2C3E50',  # Dark blue-gray
+            justify='center'
+        )
+        
+        # Main instruction text in center
+        self.canvas.create_text(
+            self.screen_width // 2,
+            self.screen_height // 2,
+            text=text,
+            font=self.instruction_font,
+            fill='black',
+            justify='center',
+            width=self.screen_width * 0.85
+        )
+        
+        # "Press SPACE to continue" at bottom
+        self.canvas.create_text(
+            self.screen_width // 2,
+            self.screen_height - 80,
+            text="Press SPACE to continue",
+            font=self.small_instruction_font,
+            fill='#555555',
+            justify='center'
+        )
+        
+        self.root.update()
+        self.wait_for_space()
+        
+        # Reset to normal gray background
+        self.canvas.configure(bg=self.bg_color)
 
     def show_instruction(self, text: str):
         self.clear()
@@ -95,29 +149,12 @@ class ExperimentGUI:
 
     def show_fixation(self, duration_ms: int):
         self.clear()
-        # Draw a plus sign with thick lines
-        line_thickness = max(4, min(self.screen_width, self.screen_height) // 150)
-        line_length = min(self.screen_width, self.screen_height) // 15  # Smaller cross
+        
         cx, cy = self.screen_width // 2, self.screen_height // 2
         
-        # Horizontal line
-        self.canvas.create_line(
-            cx - line_length, cy, 
-            cx + line_length, cy, 
-            fill='black', width=line_thickness
-        )
-        
-        # Vertical line
-        self.canvas.create_line(
-            cx, cy - line_length, 
-            cx, cy + line_length, 
-            fill='black', width=line_thickness
-        )
-        
-        # Alternative method: draw a "+" character with a large font
+        # Draw plus sign
         self.canvas.create_text(
-            self.screen_width // 2,
-            self.screen_height // 2,
+            cx, cy,
             text="+",
             font=self.fixation_font,
             fill='black'
@@ -141,7 +178,8 @@ class ExperimentGUI:
             text=text,
             font=self.instruction_font,
             fill='black',
-            justify='center'
+            justify='center',
+            width=self.screen_width * 0.9
         )
         self.root.update()
         if duration_ms:
@@ -168,7 +206,7 @@ class ExperimentGUI:
         
         # Display options with numbers
         option_start_y = self.screen_height // 2
-        option_spacing = 80
+        option_spacing = max(60, self.screen_height // 15)
         
         for i, option in enumerate(options):
             y_pos = option_start_y + (i * option_spacing)
@@ -178,7 +216,8 @@ class ExperimentGUI:
                 text=f"{i+1}. {option}",
                 font=self.instruction_font,
                 fill='black',
-                justify='left'
+                justify='center',
+                width=self.screen_width * 0.8
             )
         
         # Instructions at bottom
@@ -186,9 +225,9 @@ class ExperimentGUI:
         self.canvas.create_text(
             self.screen_width // 2,
             instruction_y,
-            text="Press the number key (1-{}) for your answer".format(len(options)),
-            font=font.Font(family='Arial', size=self.instruction_font.cget('size') // 2),
-            fill='black',
+            text=f"Press the number key (1-{len(options)}) for your answer",
+            font=self.small_instruction_font,
+            fill='#555555',
             justify='center'
         )
         
@@ -200,6 +239,73 @@ class ExperimentGUI:
         
         # Return the index (0-based)
         return int(key) - 1 if key else 0
+
+    def show_feedback(self, is_correct: bool, correct_index: int, options: List[str], 
+                     duration_ms: int = 2000):
+        """
+        Show feedback after a question is answered
+        
+        Args:
+            is_correct: Whether the answer was correct
+            correct_index: Index of the correct answer
+            options: List of all options
+            duration_ms: How long to show feedback
+        """
+        self.clear()
+        
+        if is_correct:
+            # Green background for correct
+            bg_color = '#C8E6C9'  # Light green
+            self.canvas.configure(bg=bg_color)
+            
+            # Large checkmark or "Correct!"
+            self.canvas.create_text(
+                self.screen_width // 2,
+                self.screen_height // 3,
+                text="✓ CORRECT!",
+                font=font.Font(family='Arial', size=self.feedback_font.cget('size') + 20, weight='bold'),
+                fill='#2E7D32',  # Dark green
+                justify='center'
+            )
+            
+            message = "Well done!"
+            
+        else:
+            # Light red background for incorrect
+            bg_color = '#FFCDD2'  # Light red
+            self.canvas.configure(bg=bg_color)
+            
+            # Large X or "Incorrect"
+            self.canvas.create_text(
+                self.screen_width // 2,
+                self.screen_height // 3,
+                text="✗ INCORRECT",
+                font=font.Font(family='Arial', size=self.feedback_font.cget('size') + 20, weight='bold'),
+                fill='#C62828',  # Dark red
+                justify='center'
+            )
+            
+            # Show correct answer
+            correct_option = options[correct_index]
+            message = f"The correct answer was:\n{correct_index + 1}. {correct_option}"
+        
+        # Additional message
+        self.canvas.create_text(
+            self.screen_width // 2,
+            self.screen_height // 2 + 50,
+            text=message,
+            font=self.instruction_font,
+            fill='black',
+            justify='center',
+            width=self.screen_width * 0.8
+        )
+        
+        self.root.update()
+        self.root.after(duration_ms, self.root.quit)
+        self.root.mainloop()
+        
+        # Reset to normal gray background
+        self.canvas.configure(bg=self.bg_color)
             
     def show_instruction_overlay(self, text: str):
         y_pos = self.screen_height - 120
@@ -245,12 +351,34 @@ class ExperimentGUI:
         self.clear()
 
     def show_completion(self):
-        self.show_message(
-            "Experiment Complete!\n\n"
-            "Thank you for your participation.\n\n"
-            "Press SPACE to exit.",
-            duration_ms=None
+        self.clear()
+        
+        # Light green background for completion
+        self.canvas.configure(bg='#E8F5E9')
+        
+        self.canvas.create_text(
+            self.screen_width // 2,
+            self.screen_height // 2 - 50,
+            text="🎉 EXPERIMENT COMPLETE! 🎉",
+            font=font.Font(family='Arial', size=self.instruction_font.cget('size') + 10, weight='bold'),
+            fill='#2E7D32',
+            justify='center'
         )
+        
+        self.canvas.create_text(
+            self.screen_width // 2,
+            self.screen_height // 2 + 50,
+            text="Thank you for your participation!\n\nYour data has been saved.\n\nPress SPACE to exit.",
+            font=self.instruction_font,
+            fill='black',
+            justify='center'
+        )
+        
+        self.root.update()
+        self.wait_for_space()
+        
+        # Reset background
+        self.canvas.configure(bg=self.bg_color)
 
     def _on_key_press(self, event, valid_keys):
         if event.keysym.lower() in valid_keys:

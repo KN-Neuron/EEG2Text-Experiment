@@ -1,4 +1,4 @@
-# stimuli.py
+# stimuli.py - CORRECTED VERSION with IMAGINATION category
 
 import json
 import random
@@ -22,10 +22,14 @@ class StimulusManager:
         self.debug_mode = debug_mode
         self.assets_dir = Path("src/assets")
         self.assets_dir.mkdir(exist_ok=True)
+        
+        # Load all sentence categories
         self.all_sentences = {
             'normal': self._load_sentences('normal_sentences.json', 'normal'),
-            'sentiment': self._load_sentences('sentiment_sentences.json', 'sentiment'),
+            'imagination': self._load_sentences('imagination_sentences.json', 'imagination'),
         }
+        
+        # Create listening category from normal sentences
         self.all_sentences['listening'] = [
             Sentence(
                 text=s.text,
@@ -35,12 +39,13 @@ class StimulusManager:
             for s in self.all_sentences['normal']
         ]
         
+        # Shuffle all categories
         for category in self.all_sentences:
             random.shuffle(self.all_sentences[category])
             
         self.current_index = {
             'normal': 0,
-            'sentiment': 0,
+            'imagination': 0,
             'listening': 0
         }
         self.used_sentences: List[Sentence] = []
@@ -66,9 +71,9 @@ class StimulusManager:
                 data = json.load(f)
             return [Sentence(category=category, **item) for item in data]
 
-
     def _create_example_file(self, filepath: Path, category: str):
         example_sentences = []
+        
         if category == 'normal':
             examples = [
                 "The old library held secrets in its dusty pages.",
@@ -77,37 +82,47 @@ class StimulusManager:
                 "Morning coffee is essential for a good start.",
                 "Next week, I plan to travel to the mountains."
             ]
-        else: # sentiment
+        elif category == 'imagination':
+            # VISUALIZATION/IMAGINATION sentences
             examples = [
-                "His kind words were a balm to my weary soul.",
-                "A storm of emotions shook me to my very core.",
-                "An overwhelming sadness filled the quiet room.",
-                "The joy of success was simply indescribable.",
-                "Anger simmered within me, growing with each passing moment."
+                "A man crosses the street at the pedestrian crossing.",
+                "A bird flies over the tall building and lands on a tree branch.",
+                "The child kicks the red ball across the green grass.",
+                "A woman opens the door and walks into the bright room.",
+                "The cat jumps from the table onto the soft cushion."
+            ]
+        else:
+            examples = [
+                "Example sentence for unknown category."
             ]
 
         for i, text in enumerate(examples):
             example_sentences.append({
-                'text': text, 'audio_path': f"audio_{category}_{i}.mp3",
-                'question': None, 'options': None, 'correct_answer_index': None
+                'text': text,
+                'audio_path': f"audio_{category}_{i}.mp3",
+                'question': None,
+                'options': None,
+                'correct_answer_index': None
             })
         
+        # Add more example sentences
         for i in range(100):
             base_text = random.choice(examples)
             example_sentences.append({
                 'text': f"Example sentence {i+1} for {category}. {base_text}",
                 'audio_path': None,
-                'question': None, 'options': None, 'correct_answer_index': None
+                'question': None,
+                'options': None,
+                'correct_answer_index': None
             })
 
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(example_sentences, f, indent=2, ensure_ascii=False)
         self.logger.info(f"Created example file: {filepath}")
 
-
     def get_sentences(self, category: str, count: int,
                       is_trial: bool = False) -> List[Sentence]:
-        available = self.all_sentences[category]
+        available = self.all_sentences.get(category, [])
         if not available:
             self.logger.error(f"No sentences available for category: {category}")
             return []
