@@ -98,7 +98,7 @@
     "audio_path": "src/assets/audio/output13.mp3"
   },
   {
-    "text": "Czytanie w obcym języku poszerza moje horyzonty myślowe.",
+    "text": "Czytanie w obcym języku poszerza moje horyzonty",
     "question": "Które z poniższych słów występuje w poprzednim zdaniu?",
     "options": ["rower", "telefon", "Czytanie"],
     "correct_answer_index": 2,
@@ -126,7 +126,7 @@
     "audio_path": "src/assets/audio/output17.mp3"
   },
   {
-    "text": "One często oglądają programy kulinarne i szukają inspiracji.",
+    "text": "Moje znajome często oglądają programy kulinarne i szukają inspiracji.",
     "question": "Które z poniższych słów występuje w poprzednim zdaniu?",
     "options": ["rower", "szukają", "pies"],
     "correct_answer_index": 1,
@@ -168,9 +168,9 @@
     "audio_path": "src/assets/audio/output23.mp3"
   },
   {
-    "text": "On zawsze marzył o pisaniu powieści przygodowych.",
+    "text": "Mój dziadek zawsze marzył o pisaniu powieści przygodowych.",
     "question": "Które z poniższych słów występuje w poprzednim zdaniu?",
-    "options": ["o", "rower", "kino"],
+    "options": ["dziadek", "rower", "kino"],
     "correct_answer_index": 0,
     "audio_path": "src/assets/audio/output24.mp3"
   },
