@@ -1,31 +1,34 @@
 import random
 from logging import Logger
+# --- MODIFICATION START ---
+from time import perf_counter
 
 from data_acquisition.eeg_headset import EEGHeadset
-from data_acquisition.event_manager import (
-    CompositeEventManager,
-    EventManager,
-    FixedTimeoutEventManager,
-    KeyPressEventManager,
-    RandomTimeoutEventManager,
-)
+from data_acquisition.event_manager import (CompositeEventManager,
+                                            EventManager,
+                                            FixedTimeoutEventManager,
+                                            KeyPressEventManager,
+                                            RandomTimeoutEventManager)
 from data_acquisition.eventful_screen import EventfulScreen
 from data_acquisition.gui import Gui
 from data_acquisition.gui.event_types import Key
-from data_acquisition.screens import BlankScreen, FixationCrossScreen, TextScreen
+from data_acquisition.screens import (BlankScreen, FixationCrossScreen,
+                                      TextScreen)
 from data_acquisition.sequencers import SimpleScreenSequencer
 
 from .audio_screen import AudioScreen
 from .config import Config
-from .constants import (
-    NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
-    NON_SENTENCE_SCREEN_TEXT_COLOR,
-    SENTENCE_SCREEN_BACKGROUND_COLOR,
-    SENTENCE_SCREEN_TEXT_COLOR,
-    # THINKING_SCREEN_TEXT,
-)
+from .constants import (NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
+                        NON_SENTENCE_SCREEN_TEXT_COLOR,
+                        SENTENCE_SCREEN_BACKGROUND_COLOR,
+                        SENTENCE_SCREEN_TEXT_COLOR)
 from .question_screen import QuestionScreen
+from .reading_time_analyzer import ReadingTimeAnalyzer
 from .sentences import Sentence
+
+# --- MODIFICATION END ---
+
+
 
 
 class SentenceSequencer(SimpleScreenSequencer[None]):
@@ -37,6 +40,8 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
         config: Config,
         sentences: list[Sentence],
         block_type: str,
+        reading_time_analyzer: ReadingTimeAnalyzer,
+        session_reading_times: dict[str, float],
         is_test_block: bool = False,
         logger: Logger,
     ):
@@ -46,6 +51,9 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
         self._eeg_headset = eeg_headset
         self._config = config
         self._block_type = block_type
+        self._reading_time_analyzer = reading_time_analyzer
+        self._session_reading_times = session_reading_times
+        self._sentence_start_time: float | None = None
         self._is_test_block = is_test_block
         self._logger = logger
 
@@ -68,13 +76,6 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             background_color=NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
         )
 
-        # self._thinking_screen = TextScreen(
-        #     gui=self._gui,
-        #     text=THINKING_SCREEN_TEXT,
-        #     text_color=NON_SENTENCE_SCREEN_TEXT_COLOR,
-        #     background_color=NON_SENTENCE_SCREEN_BACKGROUND_COLOR,
-        # )
-
         self._pause_screen = TextScreen(
             gui=self._gui,
             text=config.pause_screen_text,
@@ -89,9 +90,6 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             advance_key=config.sentence_screen_advance_key,
             timeout_millis=config.sentence_screen_timeout_millis,
         )
-        # self._build_thinking_screen_event_manager(
-        #     timeout_millis=config.thinking_screen_timeout_millis,
-        # )
         self._build_fixation_cross_screen_event_manager(
             timeout_range_start_millis=config.fixation_cross_timeout_range_start_millis,
             timeout_range_end_millis=config.fixation_cross_timeout_range_end_millis,
@@ -103,7 +101,6 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
 
         self._was_first_screen_shown = False
         self._was_fixation_cross_shown = False
-        # self._was_thinking_screen_shown = False
         self._was_paused = False
         self._was_relax_screen_shown = False
         self._index = 0
@@ -141,6 +138,24 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             f"Block will have {len(self._sentences_with_questions)} questions out of {total_sentences} sentences"
         )
 
+    def _on_sentence_end(self, _: None) -> None:
+        """Callback to handle the end of a sentence screen."""
+        self._eeg_headset.annotate(self._config.sentence_screen_end_annotation)
+        
+        if (
+            self._sentence_start_time
+            and self._current_sentence
+            and self._current_sentence.category == "normal"
+        ):
+            end_time = perf_counter()
+            duration = end_time - self._sentence_start_time
+            sentence_text = self._current_sentence.text
+
+            self._logger.info(f"Recorded reading time for '{sentence_text}': {duration:.2f}s")
+            self._session_reading_times[sentence_text] = duration
+
+        self._sentence_start_time = None
+
     def _build_sentence_screen_event_manager(
         self,
         *,
@@ -158,21 +173,7 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             event_managers=[key_event_manager, timeout_event_manager],
             logger=self._logger,
         )
-        self._sentence_screen_event_manager.register_callback(
-            lambda _: self._eeg_headset.annotate(
-                self._config.sentence_screen_end_annotation
-            )
-        )
-
-    # def _build_thinking_screen_event_manager(self, *, timeout_millis: int) -> None:
-    #     self._thinking_screen_event_manager = FixedTimeoutEventManager(
-    #         gui=self._gui, timeout_millis=timeout_millis, logger=self._logger
-    #     )
-    #     self._thinking_screen_event_manager.register_callback(
-    #         lambda _: self._eeg_headset.annotate(
-    #             self._config.thinking_screen_end_annotation
-    #         )
-    #     )
+        self._sentence_screen_event_manager.register_callback(self._on_sentence_end)
 
     def _build_fixation_cross_screen_event_manager(
         self, *, timeout_range_start_millis: int, timeout_range_end_millis: int
@@ -221,13 +222,6 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
 
         if not self._was_fixation_cross_shown:
             return self._get_fixation_cross_screen()
-
-        # if (
-        #     not self._was_thinking_screen_shown
-        #     and self._current_sentence
-        #     and self._block_type == "sentiment"
-        # ):
-        #     return self._get_thinking_screen()
 
         return self._get_sentence_screen()
 
@@ -299,23 +293,6 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
 
         return screen
 
-    # def _get_thinking_screen(self) -> EventfulScreen[None]:
-    #     self._was_thinking_screen_shown = True
-
-    #     event_manager = self._get_event_manager_with_pause(
-    #         self._thinking_screen_event_manager
-    #     )
-
-    #     screen = EventfulScreen(
-    #         screen=self._thinking_screen,
-    #         event_manager=event_manager,
-    #         screen_show_callback=lambda: self._eeg_headset.annotate(
-    #             self._config.thinking_screen_start_annotation
-    #         ),
-    #     )
-
-    #     return screen
-
     def _get_sentence_screen(self) -> EventfulScreen[None]:
         self._was_fixation_cross_shown = False
 
@@ -342,12 +319,20 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
                 event_manager = self._get_event_manager_with_pause(
                     self._sentence_screen_event_manager
                 )
+
+                def start_callback():
+                    """Callback to handle the start of a sentence screen."""
+                    self._eeg_headset.annotate(
+                        f"{self._config.sentence_screen_start_annotation}_{self._current_sentence.category}"
+                    )
+                    # If it's a normal sentence, record the start time
+                    if self._current_sentence.category == "normal":
+                        self._sentence_start_time = perf_counter()
+
                 eventful_screen = EventfulScreen(
                     screen=screen,
                     event_manager=event_manager,
-                    screen_show_callback=lambda: self._eeg_headset.annotate(
-                        f"{self._config.sentence_screen_start_annotation}_{self._current_sentence.category}"
-                    ),
+                    screen_show_callback=start_callback,
                 )
 
                 self._logger.info(
@@ -359,6 +344,35 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             return self._get_relax_screen()
 
     def _get_audio_screen(self) -> EventfulScreen[None]:
+        # --- MODIFICATION START ---
+        sentence_text = self._current_sentence.text
+        target_duration = None
+
+        if sentence_text in self._session_reading_times:
+            target_duration = self._session_reading_times[sentence_text]
+            self._logger.info(
+                f"Found session reading time for sentence: {target_duration:.2f}s"
+            )
+
+        if not target_duration:
+            target_duration = self._reading_time_analyzer.get_avg_reading_time(
+                sentence_text
+            )
+            if target_duration:
+                self._logger.info(
+                    f"Found average reading time for sentence: {target_duration:.2f}s"
+                )
+        
+        if not target_duration:
+            target_duration = (
+                self._reading_time_analyzer.estimate_reading_time_from_wpm(
+                    sentence_text
+                )
+            )
+            self._logger.info(
+                f"No reading time data found. Estimating duration: {target_duration:.2f}s"
+            )
+
         audio_screen = AudioScreen(
             gui=self._gui,
             eeg_headset=self._eeg_headset,
@@ -366,9 +380,11 @@ class SentenceSequencer(SimpleScreenSequencer[None]):
             audio_path=self._current_sentence.audio_path,
             text=self._current_sentence.text,
             logger=self._logger,
+            target_duration_seconds=target_duration, 
         )
 
         return audio_screen.create_screen()
+
 
     def _get_question_screen(self) -> EventfulScreen[None]:
         def on_answer(is_correct):

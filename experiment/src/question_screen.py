@@ -9,7 +9,8 @@ from data_acquisition.gui.event_types import Key
 from data_acquisition.screens import TextScreen
 
 from .config import Config
-from .constants import SENTENCE_SCREEN_BACKGROUND_COLOR, SENTENCE_SCREEN_TEXT_COLOR
+from .constants import (SENTENCE_SCREEN_BACKGROUND_COLOR,
+                        SENTENCE_SCREEN_TEXT_COLOR)
 
 
 class QuestionScreen:
@@ -35,7 +36,6 @@ class QuestionScreen:
         self._on_answer_callback = on_answer_callback
 
     def create_screen(self) -> EventfulScreen[None]:
-        # Format the question and options
         display_text = f"{self._question}\n\n"
         for i, option in enumerate(self._options):
             key = chr(ord("A") + i)
@@ -43,7 +43,6 @@ class QuestionScreen:
 
         display_text += "\nWciśnij odpowiednią literę (A, B, C), by wybrać odpowiedź"
 
-        # Create text screen for the question
         question_screen = TextScreen(
             gui=self._gui,
             text=display_text,
@@ -51,7 +50,6 @@ class QuestionScreen:
             background_color=SENTENCE_SCREEN_BACKGROUND_COLOR,
         )
 
-        # Create event managers for each option key
         event_managers = []
         for i in range(len(self._options)):
             # key = getattr(Key, chr(ord("A") + i))

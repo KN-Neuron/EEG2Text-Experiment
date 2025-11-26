@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  eeg-experiment:
+    build: .
+    container_name: eeg-experiment
+    privileged: true  # Required for Bluetooth access
+    network: host     # Required for rfcomm devices
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw  # For GUI display
+      - ./data:/home/researcher/EEG2Text-Experiment/experiment/data  # Persist data
+      - ./logs:/home/researcher/EEG2Text-Experiment/experiment/logs  # Persist logs
+      - /dev:/dev  # Access to device files like rfcomm
+      - .:/home/researcher/EEG2Text-Experiment/experiment  # Mount the project
+    devices:
+      - /dev/bus/usb  # USB devices access
+    command: >
+      bash -c "
+        export PATH="/home/researcher/.local/bin:$PATH" &&
+        cd /home/researcher/EEG2Text-Experiment/experiment &&
+        bash setup.sh &&
+        bash run_experiment.sh --mock-eeg
+      "

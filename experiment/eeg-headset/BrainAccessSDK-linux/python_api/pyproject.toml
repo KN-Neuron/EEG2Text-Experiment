@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brainaccess"
+version = "3.5.0"
+description = "BrainAccess Python API"
+requires-python = ">=3.8"
+keywords = ["brainaccess", "BCI", "EEG"]
+authors = [
+    { name = "neurotechnology", email = "support@neurotechnology.com" },
+]
+classifiers = [
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "pandas",
+    "matplotlib",
+    "numpy",
+    "pyyaml",
+    "multimethod",
+    "mne",
+]
+
+[project.optional-dependencies]
+bci = [
+    "click",
+    "Pillow",
+    "PsychoPy",
+    "psychtoolbox",
+    "scipy",
+]
+
+[project.urls]
+homepage = "https://www.brainaccess.ai/"
+documentation = "https://www.brainaccess.ai/software/brainaccess-sdk/"

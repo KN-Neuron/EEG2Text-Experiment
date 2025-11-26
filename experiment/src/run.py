@@ -6,24 +6,20 @@ from typing import cast
 from data_acquisition.eeg_headset import MockEEGHeadset
 from data_acquisition.experiment_runner import ExperimentRunner
 from data_acquisition.gui import PygameGui
-from data_acquisition.gui.display_mode import FullscreenDisplayMode, WindowedDisplayMode
+from data_acquisition.gui.display_mode import (FullscreenDisplayMode,
+                                               WindowedDisplayMode)
 from data_acquisition.pre_experiment_survey import PreExperimentSurvey
 
 from .app_sequencer_builder import AppSequencerBuilder
 from .config import Config
-from .constants import (
-    BLOCK_COUNT,
-    DEBUG_BLOCK_COUNT,
-    DEBUG_RELAX_SCREEN_TIMEOUT_MILLIS,
-    DEBUG_SENTENCES_IN_BLOCK_COUNT,
-    LOGGING_DATETIME_FORMAT,
-    LOGGING_LEVEL,
-    LOGGING_MESSAGE_FORMAT,
-    RELAX_SCREEN_TIMEOUT_MILLIS,
-    SENTENCES_IN_BLOCK_COUNT,
-    SURVEY_CONFIG_PATH,
-    SURVEY_PARTICIPANT_ID_KEY,
-)
+from .constants import (BLOCK_COUNT, DEBUG_BLOCK_COUNT,
+                        DEBUG_RELAX_SCREEN_TIMEOUT_MILLIS,
+                        DEBUG_SENTENCES_IN_BLOCK_COUNT,
+                        LOGGING_DATETIME_FORMAT, LOGGING_LEVEL,
+                        LOGGING_MESSAGE_FORMAT, RELAX_SCREEN_TIMEOUT_MILLIS,
+                        SENTENCES_IN_BLOCK_COUNT, SURVEY_CONFIG_PATH,
+                        SURVEY_PARTICIPANT_ID_KEY)
+from .reading_time_analyzer import ReadingTimeAnalyzer
 
 
 def run(
@@ -38,8 +34,9 @@ def run(
 
     logger = logging.getLogger()
     logger.setLevel(LOGGING_LEVEL)
-    (Path().cwd() / "logs").mkdir(exist_ok=True)
-    handler = logging.FileHandler(f"logs/{participant_id}.log", encoding="utf-8")
+    log_dir = Path().cwd() / "logs"
+    log_dir.mkdir(exist_ok=True)
+    handler = logging.FileHandler(log_dir / f"{participant_id}.log", encoding="utf-8")
     handler.setLevel(LOGGING_LEVEL)
     formatter = logging.Formatter(
         LOGGING_MESSAGE_FORMAT, datefmt=LOGGING_DATETIME_FORMAT
@@ -50,10 +47,10 @@ def run(
     if do_use_mock_headset:
         headset = MockEEGHeadset(logger=logger)
     else:
-        from data_acquisition.eeg_headset.brainaccess import BrainAccessV3Headset
-        from data_acquisition.eeg_headset.brainaccess.devices import (
-            BRAINACCESS_MAXI_32_CHANNEL,
-        )
+        from data_acquisition.eeg_headset.brainaccess import \
+            BrainAccessV3Headset
+        from data_acquisition.eeg_headset.brainaccess.devices import \
+            BRAINACCESS_MAXI_32_CHANNEL
 
         headset = BrainAccessV3Headset(
             device_name=brainaccess_cap_name,
@@ -82,12 +79,16 @@ def run(
         ),
     )
 
+    reading_analyzer = ReadingTimeAnalyzer(log_directory=log_dir, logger=logger)
+
+
     app_sequencer_builder = AppSequencerBuilder(
         gui=gui,
         config=config,
         headset=headset,
         participant_id=participant_id,
         logger=logger,
+        reading_time_analyzer=reading_analyzer,
     )
     sequencer = app_sequencer_builder.set_up_app_sequencer()
 
