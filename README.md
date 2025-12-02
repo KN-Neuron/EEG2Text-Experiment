@@ -28,11 +28,19 @@ Here is the content of the file converted into a structured Markdown checklist.
 
 ### **Protokół badania - Checklista**
 
+#### **0. Osoba badana**
+* wypoczęta
+* nie pod wpływem alkoholu i używek
+* najlepiej jeśli nie piła kawy i napojów z wysoką zawartością kofeiny
+* bez lakieru na włosach
+* bez zbyt gęstych włosów (np afro)
+* 
+
 #### **1. Do wzięcia (Lista wyposażenia)**
 * Laptop + ładowarka
 * Sparowany BrainAccess MIDI przez Bluetooth
-* Zainstalowany BrainAccess Board 1.1.3
-* Czepek BrainAccess
+* Zainstalowany BrainAccess Board 2.5.0 https://drive.google.com/drive/u/1/folders/1XXSHa4FeGyfv57Ik3Kcwh1iO5W10GVt8
+* Czepek BrainAccess 32 kanały
 * Zgody (wypełniony UUID i podpis osoby badającej)
 * Dowód/legitymacja do odebrania sali
 * Wydrukowana checklista
@@ -40,6 +48,7 @@ Here is the content of the file converted into a structured Markdown checklist.
 * Rękawiczki jednorazowe
 * Nagrody materialne
 * Woda + jedzenie + krzyżówki
+* Waciki (do wyczyszczenia elektrod przed badaniem)
 
 ---
 
@@ -50,26 +59,28 @@ Here is the content of the file converted into a structured Markdown checklist.
 * Podłączyć laptop do zasilania.
 * Włączyć Bluetooth i sprawdzić, czy MIDI jest sparowane.
 * Odpalić BrainAccess Board.
+* Po upewnieniu się, że signal quality jest OK to rozłączamy się z boardem i włączamy aplikację.
 
 **Opisanie badanemu celu badania:**
-* Wyjaśnić: „Badanie ma na celu analizę sposobu przetwarzania zdań i myślenia przy pomocy fal mózgowych”.
-* Poinformować o trybach czytania/słuchania:
-    * **Normal:** Przeczytanie zdania w miarę szybko, każde słowo ma być wyraźnie przeczytane.
-    * **Sentiment:** Mniej skupienia na każdym słowie, bardziej na znaczeniu i wizualizacji sensu zdania.
-    * **Słuchanie:** Badany śledzi tekst wzrokiem i słucha go jednocześnie, koncentrując się na każdym słowie w głowie.
+* Wyjaśnić: „Badanie ma na celu analizę sposobu przetwarzania zdań i myślenia przy pomocy fal mózgowych. Przewidujemy nagrodę od pewnego progu poprawnego wykonywania zadania." Nie musimy precyzować co to jest i jakie metryki mierzymy, ale musimy powiedzieć, że to sprawdzamy w czasie rzeczywistym.
+* Poinformować o blokach czytania/słuchania:
+    * **Normal:** Przeczytanie zdania naturalnym tempem słowo w słowo tak każde słowo było wyraźnie przeczytane.
+    * **Sentiment:** Mniej skupienia na każdym słowie, bardziej na znaczeniu i zilustorowanie w myślach tego co przedstawia zdanie. Chcemy by w miarę możliwości ilustrował czytając zdanie. Mniej skupienia na słowach, a bardziej na to o czym czyta. nie chcemy by wizualizował obrazek, ale podczas czytania myślał nad sensem tego co czyta.
+    * **Słuchanie + Czytanie:** Badany śledzi tekst wzrokiem i słucha go jednocześnie, koncentrując się na każdym słowie w głowie. To w zasadzie powtórka pierwszego bloku, ale z audio przeczytanych zdań. Tempo audio jest dostosowane do tego jak szybko czytaliśmy w normal readingu.
 * Bloki są mieszane, niekoniecznie w kolejności.
 * Po losowych zdaniach pojawi się pytanie o treść.
-* Jeśli badany odpowie poprawnie na wszystkie pytania, otrzyma cenne nagrody rzeczowe.
+* Jeśli badany odpowie poprawnie na wszystkie pytania.
 
 **Przygotowanie uczestnika i danych:**
 * Uzupełnienie zgody przez badanego.
-* Poproszenie o odłożenie, wyciszenie i/lub wyłączenie telefonów, smartwatchy, słuchawek, aparatów słuchowych i rozruszników serca.
+* Poproszenie o odłożenie, wyciszenie i/lub wyłączenie telefonów, smartwatchy, słuchawek, aparatów słuchowych.
 * Wpisanie ID ze zgody do aplikacji.
 * Upewnienie się, że w `src/config.py` zmienne `DEBUG` i `DEBUG WITHOUT HEADSET` są ustawione na **False**.
-* **Wprowadzenie danych osobowych:**
+* **Wprowadzenie danych osobowych (wykonuje badacz):**
     * Pełne imię.
-    * Data urodzenia w formacie "10 września" (nie "wrzesień").
     * Płeć "m" lub "k" (z małej litery).
+    * Wiek
+    * Prawo i leworęczność (powinniśmy się skupić tylko na praworęcznych i w najepszym wypadku nie badać leworęcznych)
 
 **Zakładanie sprzętu:**
 1.  Poproszenie badanego o zdjęcie okularów.
