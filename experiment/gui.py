@@ -1,10 +1,10 @@
+# gui.py
 
 import tkinter as tk
 from tkinter import font
 import logging
 import time
 from typing import List, Optional
-
 
 
 class ExperimentGUI:
@@ -23,19 +23,17 @@ class ExperimentGUI:
         self.bg_color = '#D3D3D3'
         self.root.configure(bg=self.bg_color)
 
-        # Kluczowa linia dla Twojego fullscreen
+        # Kluczowa linia dla odświeżenia geometrii
         self.root.update()
 
-        # Poprawny pomiar ekranu
+        # Poprawny pomiar ekranu po update()
         self.screen_width = self.root.winfo_screenwidth()
         self.screen_height = self.root.winfo_screenheight()
         self.logger.info(f"GUI initialized with CORRECT screen size: {self.screen_width}x{self.screen_height}")
 
-
-        base_size_calc = min(self.screen_width, self.screen_height) //25
-
+        # Skalowanie czcionek względem rozdzielczości
+        base_size_calc = min(self.screen_width, self.screen_height) // 25
         self.base_font_size = base_size_calc
-
 
         self.text_font = ('Arial', self.base_font_size, 'bold')
         self.instruction_font = ('Arial', int(self.base_font_size * 0.85), 'bold')
@@ -47,7 +45,6 @@ class ExperimentGUI:
 
         self.logger.info(f"Font sizes - Calculated Base: {self.base_font_size}, Fixation: {fixation_size}")
 
-
         self.canvas = tk.Canvas(
             self.root,
             width=self.screen_width,
@@ -56,7 +53,10 @@ class ExperimentGUI:
             highlightthickness=0
         )
         self.canvas.pack(expand=True, fill='both')
+
+        # Wyjście awaryjne Escape
         self.root.bind('<Escape>', lambda e: self.close())
+
         self.waiting_for_key = False
         self.key_pressed = None
 
@@ -66,7 +66,7 @@ class ExperimentGUI:
             self.screen_width // 2,
             self.screen_height // 2,
             text="Witaj w badaniu EEG2Text\n\nNaciśnij SPACJĘ by rozpocząć",
-            font=self.instruction_font,  # Używa krotki
+            font=self.instruction_font,
             fill='black',
             justify='center'
         )
@@ -108,7 +108,6 @@ class ExperimentGUI:
 
         self.root.update()
         self.wait_for_space()
-
         self.canvas.configure(bg=self.bg_color)
 
     def show_instruction(self, text: str):
@@ -140,17 +139,15 @@ class ExperimentGUI:
 
     def show_fixation(self, duration_ms: int):
         self.clear()
-
         cx, cy = self.screen_width // 2, self.screen_height // 2
-
         self.canvas.create_text(
             cx, cy,
             text="+",
             font=self.fixation_font,
             fill='black'
         )
-
         self.root.update()
+        # Używamy after+mainloop jako nieblokującej pauzy (dla systemu operacyjnego)
         self.root.after(duration_ms, self.root.quit)
         self.root.mainloop()
 
@@ -219,9 +216,11 @@ class ExperimentGUI:
 
         self.root.update()
 
+        # Oczekiwanie na klawisze numeryczne odpowiadające liczbie opcji
         valid_keys = [str(i + 1) for i in range(len(options))]
         key = self.wait_for_key(valid_keys)
 
+        # Zwraca indeks (0, 1, 2...)
         return int(key) - 1 if key else 0
 
     def show_feedback(self, is_correct: bool, correct_index: int, options: List[str],
@@ -231,33 +230,26 @@ class ExperimentGUI:
         if is_correct:
             bg_color = '#C8E6C9'
             self.canvas.configure(bg=bg_color)
-
             self.canvas.create_text(
                 self.screen_width // 2,
                 self.screen_height // 3,
                 text="✓ CORRECT!",
-                # POPRAWKA: Używamy krotki bazując na self.base_font_size
                 font=('Arial', self.base_font_size + 20, 'bold'),
                 fill='#2E7D32',
                 justify='center'
             )
-
             message = "Dobra robota!"
-
         else:
             bg_color = '#FFCDD2'
             self.canvas.configure(bg=bg_color)
-
             self.canvas.create_text(
                 self.screen_width // 2,
                 self.screen_height // 3,
                 text="✗ BŁĄD",
-                # POPRAWKA: Używamy krotki bazując na self.base_font_size
                 font=('Arial', self.base_font_size + 20, 'bold'),
                 fill='#C62828',
                 justify='center'
             )
-
             correct_option = options[correct_index]
             message = f"Poprawną odpowiedzią było:\n{correct_index + 1}. {correct_option}"
 
@@ -274,10 +266,10 @@ class ExperimentGUI:
         self.root.update()
         self.root.after(duration_ms, self.root.quit)
         self.root.mainloop()
-
         self.canvas.configure(bg=self.bg_color)
 
     def show_instruction_overlay(self, text: str):
+        # Pasek na dole ekranu (np. do "Słuchanie...")
         y_pos = self.screen_height - 120
         rect_height = 100
         self.canvas.create_rectangle(
@@ -305,12 +297,15 @@ class ExperimentGUI:
             text="", font=self.instruction_font, fill='black', justify='center'
         )
 
+        # Odliczanie czasu przerwy
         while time.time() < end_time:
             seconds_left = int(round(end_time - time.time()))
             if seconds_left < 0: seconds_left = 0
+
+            # POPRAWIONE LITERÓWKI
             self.canvas.itemconfig(
                 text_id,
-                text=f"Czas na odopczynek\n\n{seconds_left} sekund pozostało\n\nZreklaksuj się, możesz pomrugać..."
+                text=f"Czas na odpoczynek\n\n{seconds_left} sekund pozostało\n\nZrelaksuj się, możesz pomrugać..."
             )
             self.root.update()
             time.sleep(1.0)
@@ -322,7 +317,6 @@ class ExperimentGUI:
 
     def show_completion(self):
         self.clear()
-
         self.canvas.configure(bg='#E8F5E9')
 
         self.canvas.create_text(
@@ -345,7 +339,6 @@ class ExperimentGUI:
 
         self.root.update()
         self.wait_for_space()
-
         self.canvas.configure(bg=self.bg_color)
 
     def _on_key_press(self, event, valid_keys):

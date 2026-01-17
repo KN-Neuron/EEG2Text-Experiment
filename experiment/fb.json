@@ -1,0 +1,95 @@
+[
+  {
+    "text": "To jest zdanie BEZ pytania w bloku Normal.",
+    "id": 101,
+    "type": "nr",
+    "path": null,
+    "question": null,
+    "answers": null,
+    "right_answer": null
+  },
+  {
+    "text": "To jest zdanie Z PYTANIEM w bloku Normal.",
+    "id": 102,
+    "type": "nr",
+    "path": null,
+    "question": "Czy to zdanie miało pytanie?",
+    "answers": ["Tak", "Nie", "Nie wiem"],
+    "right_answer": 1
+  },
+  {
+    "text": "Kolejne zdanie BEZ pytania.",
+    "id": 103,
+    "type": "nr",
+    "path": null,
+    "question": null,
+    "answers": null,
+    "right_answer": null
+  },
+  {
+    "text": null,
+    "id": null,
+    "type": "break",
+    "path": null
+  },
+  {
+    "text": "Sentyment 1 (Bez pytania).",
+    "id": 201,
+    "type": "sr",
+    "path": null,
+    "question": null,
+    "answers": null,
+    "right_answer": null
+  },
+  {
+    "text": "Sentyment 2 (Bez pytania).",
+    "id": 202,
+    "type": "sr",
+    "path": null,
+    "question": null,
+    "answers": null,
+    "right_answer": null
+  },
+  {
+    "text": "To jest zdanie pozytywne (Z PYTANIEM).",
+    "id": 203,
+    "type": "sr",
+    "path": null,
+    "question": "Jaki jest wydźwięk?",
+    "answers": ["Pozytywny", "Negatywny", "Neutralny"],
+    "right_answer": 1
+  },
+  {
+    "text": null,
+    "id": null,
+    "type": "break",
+    "path": null
+  },
+  {
+    "text": "Audio 1 (Z PYTANIEM).",
+    "id": 301,
+    "type": "audio",
+    "path": "audio/32.mp3",
+    "question": "Czy słyszałeś dźwięk?",
+    "answers": ["Tak", "Nie"],
+    "right_answer": 1
+  },
+  {
+    "text": "Audio 2 (Bez pytania).",
+    "id": 302,
+    "type": "audio",
+    "path": "audio/29.mp3",
+    "question": null,
+    "answers": null,
+    "right_answer": null
+  },
+  {
+    "text": "Audio 3 (Bez pytania).",
+    "id": 303,
+    "type": "audio",
+    "path": "audio/286.mp3",
+    "question": null,
+    "answers": null,
+    "right_answer": null
+  }
+]
