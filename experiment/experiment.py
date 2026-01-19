@@ -11,7 +11,6 @@ import json
 import dataclasses
 from datetime import datetime
 from gui import ExperimentGUI
-# from stimuli import Sentence, StimulusManager # (Nie używamy, jeśli wszystko idzie z JSON)
 from audio_manager import AudioManager
 
 
@@ -93,42 +92,156 @@ class EEG2TextExperiment:
             else:
                 raise
 
+    def _create_practice_items(self, block_type: str) -> List[Dict]:
+        """Generuje 3 zdania treningowe dla danego typu bloku."""
+        items = []
+
+        if block_type == 'nr':
+            items = [
+                {
+                    "text": "To jest zdanie treningowe. Przeczytaj je w naturalnym tempie.",
+                    "id": "p_nr_1", "type": "nr_practice", "path": None
+                },
+                {
+                    "text": "Naciśnij spację dopiero, gdy skończysz czytać cały tekst.",
+                    "id": "p_nr_2", "type": "nr_practice", "path": None
+                },
+                {
+                    "text": "To ostatnie zdanie treningowe czytania.",
+                    "id": "p_nr_3", "type": "nr_practice", "path": None
+                }
+            ]
+        elif block_type == 'sr':
+            items = [
+                {
+                    "text": "Lubię, gdy świeci słońce i jest ciepło.",
+                    "id": "p_sr_1", "type": "sr_practice", "path": None,
+                    "question": None,
+                    "right_answer": 1
+                },
+                {
+                    "text": "Dzisiaj zgubiłem klucze i spóźniłem się do pracy.",
+                    "id": "p_sr_2", "type": "sr_practice", "path": None,
+                    "question": None,
+                    "right_answer": 2
+                },
+                {
+                    "text": "Wczoraj po południu czytałem gazetę.",
+                    "id": "p_sr_3", "type": "sr_practice", "path": None,
+                    "question": None,
+                    "right_answer": 3
+                }
+            ]
+        elif block_type == 'audio':
+            items = [
+                {
+                    "text": "Szukam inspiracji w starych książkach podróżniczych.",
+                    "id": "p_audio_1", "type": "audio_practice",
+                    "path": "test_audio/audio0.mp3",
+                    "question": "Jakie słowo pojawiło się w zdaniu", "answers": ["Szukam", "Siłownia", "Plecak"], "right_answer": 1
+                },
+                {
+                    "text": "Ostatnio odwiedziłam nowo otwartą siłownię w centrum",
+                    "id": "p_audio_2", "type": "audio_practice",
+                    "path": "test_audio/audio1.mp3",
+                    "question": None, "answers": None, "right_answer": None
+                },
+                {
+                    "text": "On często spaceruje brzegiem rzeki przy zachodzie słońca",
+                    "id": "p_audio_3", "type": "audio_practice",
+                    "path": "test_audio/audio2.mp3",
+                    "question": None, "answers": None, "right_answer": None
+                }
+            ]
+
+        return items
+
+    def _inject_practice_blocks(self, original_data: List[Dict]) -> List[Dict]:
+        """Wstawia bloki treningowe przed pierwszym wystąpieniem danego typu."""
+        new_data = []
+        practiced_types = set()
+
+        # Mapowanie typów z JSON na typy bazowe
+        for item in original_data:
+            t = item.get('type', 'nr').lower()
+
+            # Jeśli to główny typ (nie break) i jeszcze nie był trenowany
+            if t in ['nr', 'sr', 'audio'] and t not in practiced_types:
+                self.logger.info(f"Injecting PRACTICE block for type: {t}")
+
+                # Dodajemy 3 zdania treningowe
+                practice_items = self._create_practice_items(t)
+                new_data.extend(practice_items)
+
+                # Oznaczamy, że ten typ ma już trening
+                practiced_types.add(t)
+
+            # Dodajemy oryginalny element
+            new_data.append(item)
+
+        return new_data
+
     def load_experiment_data(self) -> List[Dict]:
         possible_paths = [Path("data") / self.json_filename, Path(self.json_filename)]
         json_path = next((p for p in possible_paths if p.exists()), None)
 
         if not json_path:
-            # Tworzymy plik dummy, jeśli nie ma
             raise FileNotFoundError(f"Nie znaleziono pliku JSON: {self.json_filename}")
 
         self.logger.info(f"Loading experiment data from: {json_path}")
         with open(json_path, 'r', encoding='utf-8') as f:
             content = json.load(f)
+            data = []
             if isinstance(content, dict) and "fullContent" in content:
-                return content["fullContent"]
+                data = content["fullContent"]
             elif isinstance(content, list):
-                return content
-            raise ValueError("Nieznany format pliku JSON.")
+                data = content
+            else:
+                raise ValueError("Nieznany format pliku JSON.")
+
+            # TUTAJ wstrzykujemy treningi
+            return self._inject_practice_blocks(data)
 
     def get_instruction_text(self, block_type: str) -> dict:
+        """Zwraca treść instrukcji. Obsługuje też typy treningowe."""
         instructions = {
+            # --- TRENINGI ---
+            "nr_practice": {
+                "title": "TRENING: CZYTANIE",
+                "text": "To jest krótki trening.\n\nPrzeczytaj zdania w naturalnym tempie.\nNaciśnij SPACJĘ, gdy skończysz.\n\nNaciśnij SPACJĘ, aby rozpocząć trening.",
+                "color": "#D1F2EB"  # Jasny turkus
+            },
+            "sr_practice": {
+                "title": "TRENING: SENTYMENT",
+                "text": "To jest krótki trening.\n\nPrzeczytaj zdanie i odpowiedz na pytanie (jeśli się pojawi).\n\nNaciśnij SPACJĘ, aby rozpocząć trening.",
+                "color": "#FAD7A0"  # Jasny pomarańcz
+            },
+            "audio_practice": {
+                "title": "TRENING: AUDIO",
+                "text": "To jest krótki trening.\n\nZałóż słuchawki. Posłuchaj nagrań testowych.\n\nNaciśnij SPACJĘ, aby rozpocząć trening.",
+                "color": "#D7BDE2"  # Jasny fiolet
+            },
+
+            # --- GŁÓWNE BLOKI ---
             "nr": {
-                "title": "CZYTANIE NORMALNE",
-                "text": "Przeczytaj zdanie w swoim naturalnym tempie.\nNaciśnij SPACJĘ po zakończeniu.\n\nNaciśnij SPACJĘ, aby rozpocząć.",
+                "title": "EKSPERYMENT: CZYTANIE",
+                "text": "Koniec treningu. Zaczynamy badanie.\n\nPrzeczytaj zdanie w swoim naturalnym tempie.\nNaciśnij SPACJĘ po zakończeniu.\n\nNaciśnij SPACJĘ, aby rozpocząć.",
                 "color": "#E8F4F8"
             },
             "sr": {
-                "title": "OCENA SENTYMENTU",
-                "text": "Przeczytaj zdanie. Jeśli pojawi się pytanie, oceń wydźwięk.\nNaciśnij SPACJĘ po zakończeniu.\n\nNaciśnij SPACJĘ, aby rozpocząć.",
+                "title": "EKSPERYMENT: OCENA SENTYMENTU",
+                "text": "Koniec treningu. Zaczynamy badanie.\n\nPrzeczytaj zdanie. Jeśli pojawi się pytanie, odpowiedz na nie.\n\nNaciśnij SPACJĘ, aby rozpocząć.",
                 "color": "#FFF4E6"
             },
             "audio": {
-                "title": "SŁUCHANIE AUDIO",
-                "text": "Posłuchaj nagrania. Tekst będzie widoczny na ekranie.\nDługość nagrania dostosuje się do Twojego tempa czytania.\n\nNaciśnij SPACJĘ, aby rozpocząć.",
+                "title": "EKSPERYMENT: SŁUCHANIE AUDIO",
+                "text": "Koniec treningu. Zaczynamy badanie.\n\nPosłuchaj nagrania. Tekst będzie widoczny.\nDługość nagrania dostosuje się do Twojego tempa czytania.\n\nNaciśnij SPACJĘ, aby rozpocząć.",
                 "color": "#F0E6FF"
             }
         }
-        return instructions.get(block_type, {"title": "INSTRUKCJA", "text": "Naciśnij SPACJĘ.", "color": "#FFFFFF"})
+        # Fallback dla nieznanych typów
+        return instructions.get(block_type, {"title": "INSTRUKCJA", "text": "Naciśnij SPACJĘ, aby kontynuować.",
+                                             "color": "#FFFFFF"})
 
     def run(self):
         try:
@@ -145,32 +258,39 @@ class EEG2TextExperiment:
             current_block_type = None
 
             for index, item in enumerate(experiment_data):
-                item_type = item.get("type", "nr").lower()
+                # raw_type to np. "nr_practice" lub "nr"
+                raw_type = item.get("type", "nr").lower()
                 item_id = item.get("id", "unknown")
                 item_text = item.get("text", "")
 
+                # Sprawdzamy czy to practice, by wiedzieć jak traktować logikę (base_type)
+                is_practice = "_practice" in raw_type
+                # base_type to "nr", "sr", "audio" (usuwamy suffix _practice)
+                base_type = raw_type.replace("_practice", "")
+
                 # 1. PRZERWA
-                if item_type == "break":
+                if base_type == "break":
                     self.eeg.annotate("BREAK_START")
                     self.gui.show_rest(duration_ms=10000)
                     self.eeg.annotate("BREAK_END")
                     current_block_type = "break"
                     continue
 
-                # 2. INSTRUKCJA
-                if item_type != current_block_type:
-                    instr = self.get_instruction_text(item_type)
-                    self.eeg.annotate(f"INSTRUCTION_START_{item_type.upper()}")
+                # 2. INSTRUKCJA (na zmianę raw_type, czyli np. z nr_practice na nr też pokaże instrukcję)
+                if raw_type != current_block_type:
+                    instr = self.get_instruction_text(raw_type)
+                    self.eeg.annotate(f"INSTRUCTION_START_{raw_type.upper()}")
                     self.gui.show_colored_instruction(instr["title"], instr["text"], color=instr["color"])
-                    self.eeg.annotate(f"INSTRUCTION_END_{item_type.upper()}")
-                    current_block_type = item_type
+                    self.eeg.annotate(f"INSTRUCTION_END_{raw_type.upper()}")
+                    current_block_type = raw_type
 
                 trial_info = {
                     "trial_index": index,
                     "id": item_id,
-                    "type": item_type,
+                    "type": raw_type,  # Zapisujemy dokładny typ (np. nr_practice)
                     "text": item_text,
                     "timestamp": datetime.now().isoformat(),
+                    "is_practice": is_practice,
                     "question_asked": False
                 }
 
@@ -179,35 +299,32 @@ class EEG2TextExperiment:
                 self.gui.show_fixation(fixation_time)
                 self.eeg.annotate("FIXATION")
 
-                # 3. PREZENTACJA BODŹCA
-                self.eeg.annotate(f"STIM_START_ID_{item_id}_TYPE_{item_type.upper()}")
+                # Marker EEG zawiera informację czy to PRACTICE
+                marker_type = raw_type.upper()
+                self.eeg.annotate(f"STIM_START_ID_{item_id}_TYPE_{marker_type}")
+
                 start_time = time.time()
 
-                if item_type == "audio":
+                if base_type == "audio":
                     # --- OBSŁUGA AUDIO ---
                     raw_audio_path = item.get("path")
 
-                    # Pobieramy zapisany czas czytania
+                    # Pobieramy czas czytania (tylko dla głównego eksperymentu, dla treningu raczej nie będzie matchu tekstowego)
                     target_duration = self.reading_times.get(item_text, 0.0)
 
-                    self.logger.info(f"Preparing audio for ID {item_id}. Target duration: {target_duration:.2f}s")
+                    # Dla practice audio - jeśli nie ma czasu (bo tekst inny niż w practice NR), puści normalnie.
 
-                    # AudioManager przygotowuje plik (przyspiesza/zwalnia/generuje TTS)
-                    # Zwraca ścieżkę do gotowego pliku
+                    self.logger.info(f"Preparing audio ID {item_id}. Target: {target_duration:.2f}s")
                     final_audio_path = self.audio_manager.get_audio(item_text, raw_audio_path, target_duration)
 
                     trial_info["audio_path"] = str(final_audio_path)
                     trial_info["target_duration"] = target_duration
 
-                    # 1. Pokaż tekst
                     self.gui.show_sentence(item_text)
-                    # 2. Pokaż overlay
                     self.gui.show_instruction_overlay("SŁUCHANIE...")
 
-                    # 3. Graj
                     self.audio_manager.start_playing(final_audio_path)
 
-                    # 4. Czekaj na koniec audio
                     while self.audio_manager.is_playing():
                         time.sleep(0.05)
                         self.gui.root.update()
@@ -220,10 +337,13 @@ class EEG2TextExperiment:
                     self.gui.show_sentence(item_text)
                     self.gui.wait_for_space()
 
-                    # KLUCZOWE: Zapisujemy czas czytania
                     reading_time = time.time() - start_time
+
+                    # Zapisujemy czas TYLKO jeśli to nie jest trening (żeby nie śmiecić słownika)
+                    # Albo zapisujemy zawsze - jeśli teksty w treningu Audio są takie same jak w treningu NR, to zadziała.
+                    # W mojej implementacji teksty są inne, więc po prostu zapisujemy.
                     self.reading_times[item_text] = reading_time
-                    self.logger.info(f"Recorded reading time for text: {reading_time:.2f}s")
+
                     trial_info["reading_duration"] = reading_time
 
                 self.eeg.annotate(f"STIM_END_ID_{item_id}")
