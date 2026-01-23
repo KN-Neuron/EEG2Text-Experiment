@@ -1,0 +1,302 @@
+[
+  {
+    "text": "Mężczyzna przechodzi przez ulicę.",
+    "question": "Kto przechodzi przez ulicę?",
+    "options": ["Mężczyzna", "Kobieta", "Dziecko"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Kobieta otwiera drzwi.",
+    "question": "Co robi kobieta?",
+    "options": ["Zamyka", "Otwiera", "Maluje"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Dziecko kopie piłkę.",
+    "question": "Co kopie dziecko?",
+    "options": ["Kamień", "Puszkę", "Piłkę"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Pies biega po trawie.",
+    "question": "Gdzie biega pies?",
+    "options": ["Po trawie", "Po piasku", "Po śniegu"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Kot śpi na kanapie.",
+    "question": "Gdzie śpi kot?",
+    "options": ["Na łóżku", "Na kanapie", "Na krześle"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Chłopiec spaceruje ulicą.",
+    "question": "Co robi chłopiec?",
+    "options": ["Stoi", "Biegnie", "Spaceruje"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Dziewczynka je jabłko.",
+    "question": "Co je dziewczynka?",
+    "options": ["Jabłko", "Banan", "Pomarańczę"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Mężczyzna czyta książkę.",
+    "question": "Co czyta mężczyzna?",
+    "options": ["Gazetę", "Książkę", "List"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Kobieta pije kawę.",
+    "question": "Co pije kobieta?",
+    "options": ["Herbatę", "Wodę", "Kawę"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Ptak leci nad drzewami.",
+    "question": "Nad czym leci ptak?",
+    "options": ["Nad drzewami", "Nad wodą", "Nad domem"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Dziecko rysuje kredkami.",
+    "question": "Czym rysuje dziecko?",
+    "options": ["Ołówkiem", "Kredkami", "Pisakami"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Samochód jedzie drogą.",
+    "question": "Czym jedzie samochód?",
+    "options": ["Ścieżką", "Polem", "Drogą"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Mężczyzna siedzi na krześle.",
+    "question": "Gdzie siedzi mężczyzna?",
+    "options": ["Na krześle", "Na ławce", "Na podłodze"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Kobieta gotuje obiad.",
+    "question": "Co gotuje kobieta?",
+    "options": ["Śniadanie", "Obiad", "Kolację"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Chłopiec pływa w basenie.",
+    "question": "Gdzie pływa chłopiec?",
+    "options": ["W morzu", "W jeziorze", "W basenie"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Dziewczynka śpiewa piosenkę.",
+    "question": "Co robi dziewczynka?",
+    "options": ["Śpiewa", "Tańczy", "Gra"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Kot wspina się na drzewo.",
+    "question": "Na co wspina się kot?",
+    "options": ["Na płot", "Na drzewo", "Na dach"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Pies szczeka głośno.",
+    "question": "Co robi pies?",
+    "options": ["Biega", "Śpi", "Szczeka"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Mężczyzna myje samochód.",
+    "question": "Co myje mężczyzna?",
+    "options": ["Samochód", "Okna", "Podłogę"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Kobieta nosi torbę.",
+    "question": "Co nosi kobieta?",
+    "options": ["Plecak", "Torbę", "Walizkę"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Dziecko buduje zamek.",
+    "question": "Co buduje dziecko?",
+    "options": ["Dom", "Most", "Zamek"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Chłopiec jeździ na rowerze.",
+    "question": "Na czym jeździ chłopiec?",
+    "options": ["Na rowerze", "Na hulajnodze", "Na deskorolce"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Dziewczynka tańczy w pokoju.",
+    "question": "Gdzie tańczy dziewczynka?",
+    "options": ["W ogrodzie", "W pokoju", "Na scenie"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Mężczyzna pisze list.",
+    "question": "Co pisze mężczyzna?",
+    "options": ["Email", "Książkę", "List"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Kobieta zakłada buty.",
+    "question": "Co zakłada kobieta?",
+    "options": ["Buty", "Skarpetki", "Rękawiczki"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Ptak śpiewa na gałęzi.",
+    "question": "Gdzie śpiewa ptak?",
+    "options": ["W gnieździe", "Na gałęzi", "Na dachu"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Dziecko podnosi zabawkę.",
+    "question": "Co podnosi dziecko?",
+    "options": ["Książkę", "Kamień", "Zabawkę"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Chłopiec skacze przez skakankę.",
+    "question": "Przez co skacze chłopiec?",
+    "options": ["Przez skakankę", "Przez płot", "Przez kałużę"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Dziewczynka czesie włosy.",
+    "question": "Co czesie dziewczynka?",
+    "options": ["Lalkę", "Włosy", "Kota"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Mężczyzna otwiera okno.",
+    "question": "Co otwiera mężczyzna?",
+    "options": ["Drzwi", "Szafę", "Okno"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Kobieta wyciera stół.",
+    "question": "Co wyciera kobieta?",
+    "options": ["Stół", "Podłogę", "Okno"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Kot pije mleko.",
+    "question": "Co pije kot?",
+    "options": ["Wodę", "Mleko", "Sok"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Pies niesie patyk.",
+    "question": "Co niesie pies?",
+    "options": ["Piłkę", "Kość", "Patyk"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Dziecko macha ręką.",
+    "question": "Czym macha dziecko?",
+    "options": ["Ręką", "Nogą", "Chustą"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Chłopiec gra w piłkę.",
+    "question": "W co gra chłopiec?",
+    "options": ["W kosza", "W piłkę", "W tenisa"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Dziewczynka trzyma lalkę.",
+    "question": "Co trzyma dziewczynka?",
+    "options": ["Misia", "Książkę", "Lalkę"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Mężczyzna zamyka drzwi.",
+    "question": "Co robi mężczyzna?",
+    "options": ["Zamyka", "Otwiera", "Naprawia"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Kobieta patrzy w lustro.",
+    "question": "W co patrzy kobieta?",
+    "options": ["W okno", "W lustro", "W telewizor"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Ptak ląduje na ziemi.",
+    "question": "Gdzie ląduje ptak?",
+    "options": ["Na wodzie", "Na dachu", "Na ziemi"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Dziecko kładzie się spać.",
+    "question": "Co robi dziecko?",
+    "options": ["Kładzie się", "Wstaje", "Biega"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Chłopiec wstaje z łóżka.",
+    "question": "Skąd wstaje chłopiec?",
+    "options": ["Z krzesła", "Z łóżka", "Z podłogi"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Dziewczynka uśmiecha się.",
+    "question": "Co robi dziewczynka?",
+    "options": ["Płacze", "Krzyczy", "Uśmiecha się"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Mężczyzna zdejmuje kurtkę.",
+    "question": "Co zdejmuje mężczyzna?",
+    "options": ["Kurtkę", "Czapkę", "Buty"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Kobieta zakłada okulary.",
+    "question": "Co zakłada kobieta?",
+    "options": ["Kapelusz", "Okulary", "Szalik"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Kot leży na dywanie.",
+    "question": "Gdzie leży kot?",
+    "options": ["Na stole", "Na parapecie", "Na dywanie"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Pies łapie piłkę.",
+    "question": "Co łapie pies?",
+    "options": ["Piłkę", "Frisbee", "Kość"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Dziecko słucha muzyki.",
+    "question": "Czego słucha dziecko?",
+    "options": ["Radia", "Muzyki", "Bajki"],
+    "correct_answer_index": 1
+  },
+  {
+    "text": "Chłopiec myje ręce.",
+    "question": "Co myje chłopiec?",
+    "options": ["Twarz", "Zęby", "Ręce"],
+    "correct_answer_index": 2
+  },
+  {
+    "text": "Dziewczynka przytula misia.",
+    "question": "Co przytula dziewczynka?",
+    "options": ["Misia", "Poduszkę", "Lalkę"],
+    "correct_answer_index": 0
+  },
+  {
+    "text": "Mężczyzna wchodzi do pokoju.",
+    "question": "Dokąd wchodzi mężczyzna?",
+    "options": ["Do ogrodu", "Do pokoju", "Do samochodu"],
+    "correct_answer_index": 1
+  }
+]
