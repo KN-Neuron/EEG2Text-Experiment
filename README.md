@@ -10,15 +10,13 @@ For runtime config, modify constants in _main.py_:
 
 For advanced config, modify constants in _src/constants.py_.
 
-1. Go to /experiment
-2. Create venv
-3. After creating and activating venv do:
+1. Create venv
+2. After creating and activating venv do:
 
 ```
-pip install poetry
-poetry lock
-poetry install
-poetry run python main.py
+pip install -r requirements.txt
+pip install BrainAccessSDK/python_api #if you're on windows
+python3 main.py
 ```
 
 
