@@ -1,3 +1,0 @@
-from .brainaccess_headset import BrainAccessHeadset as BrainAccessHeadset
-from .brainaccess_v2_headset import BrainAccessV2Headset as BrainAccessV2Headset
-from .brainaccess_v3_headset import BrainAccessV3Headset as BrainAccessV3Headset

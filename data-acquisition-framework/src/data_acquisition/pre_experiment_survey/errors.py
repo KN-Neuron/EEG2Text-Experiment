@@ -1,2 +1,0 @@
-class PreExperimentSurveyError(Exception):
-    pass

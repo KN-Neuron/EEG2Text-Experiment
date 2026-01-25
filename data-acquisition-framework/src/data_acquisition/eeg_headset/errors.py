@@ -1,2 +1,0 @@
-class EEGHeadsetError(Exception):
-    pass

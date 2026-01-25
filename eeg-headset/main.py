@@ -1,9 +1,10 @@
-import time
 import signal
 import sys
-from brainaccess.utils import acquisition
+import time
+
 import brainaccess.core as bacore
 from brainaccess.core.eeg_manager import EEGManager
+from brainaccess.utils import acquisition
 
 
 def signal_handler(sig, frame):
@@ -24,9 +25,9 @@ signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
 try:
-    # Initialize the brainaccess core
-    bacore.init(bacore.Version(2, 0, 0))
-    print('BrainAccess core initialized')
+    from brainaccess.core.eeg_manager import EEGManager
+    from brainaccess.utils import acquisition
+    print('BrainAccess SDK imported successfully')
 
     eeg_manager = EEGManager()
     eeg_acquisition = acquisition.EEG()

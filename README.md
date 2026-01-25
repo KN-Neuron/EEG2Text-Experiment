@@ -15,7 +15,9 @@ For advanced config, modify constants in _src/constants.py_.
 
 ```
 pip install -r requirements.txt
-pip install BrainAccessSDK/python_api #if you're on windows
+pip install BrainAccessSDK-linux/python_api #if you're on linux
+# W terminalu przed uruchomieniem:
+export LD_LIBRARY_PATH=/ścieżka/do/EEG2Text-Experiment/BrainAccessSDK-linux:$LD_LIBRARY_PATH
 python3 main.py
 ```
 

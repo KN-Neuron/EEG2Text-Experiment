@@ -1,11 +1,13 @@
 # eeg_headset.py
 
+import logging
 import os
 import time
-from typing import Any, Dict, List, Optional
-import numpy as np
-import logging
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+
 
 class EEGHeadset:
     """
@@ -36,14 +38,12 @@ class EEGHeadset:
         self._create_dir_if_not_exist(self._save_dir_path)
 
         try:
-            # Initialize BrainAccess library
+            # Initialize BrainAccess library (SDK 3.5.0)
             self.logger.info("Initializing BrainAccess library...")
-            import brainaccess.core as bacore
             from brainaccess.core.eeg_manager import EEGManager
             from brainaccess.utils import acquisition
-            
-            self.bacore = bacore
-            self.bacore.init(bacore.Version(2, 0, 0))
+
+            # W SDK 3.5.0 NIE używamy bacore.init() - po prostu importujemy klasy
             self.EEGManager = EEGManager
             self.acquisition = acquisition
         except ImportError:
