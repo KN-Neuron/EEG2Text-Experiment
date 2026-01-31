@@ -1,4 +1,3 @@
-brainaccess @ file:///home/neuron/EEG2Text-Experiment/BrainAccessSDK-linux/python_api
 certifi==2026.1.4
 charset-normalizer==3.4.4
 contourpy==1.3.3
