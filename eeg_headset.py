@@ -11,7 +11,8 @@ import numpy as np
 
 class EEGHeadset:
     """
-    Handles connection and data acquisition from BrainAccess Halo 4-channel headset.
+    Handles connection and data acquisition from BrainAccess headset.
+    Compatible with BrainAccess SDK 3.6.0
     """
 
     def __init__(self, participant_id: str, logger: logging.Logger) -> None:
@@ -32,18 +33,19 @@ class EEGHeadset:
         self._max_attempts = 3
         self._annotations = []
         self._recording_start_time = 0
+        self._eeg_manager = None
+        self._eeg_acquisition = None
 
         # Create directories for data storage
         self._create_dir_if_not_exist(self._data_folder_path)
         self._create_dir_if_not_exist(self._save_dir_path)
 
         try:
-            # Initialize BrainAccess library (SDK 3.5.0)
-            self.logger.info("Initializing BrainAccess library...")
+            # Initialize BrainAccess library (SDK 3.6.0)
+            self.logger.info("Initializing BrainAccess library (SDK 3.6.0)...")
             from brainaccess.core.eeg_manager import EEGManager
             from brainaccess.utils import acquisition
 
-            # W SDK 3.5.0 NIE używamy bacore.init() - po prostu importujemy klasy
             self.EEGManager = EEGManager
             self.acquisition = acquisition
         except ImportError:
@@ -52,7 +54,7 @@ class EEGHeadset:
 
     def connect(self) -> bool:
         """
-        Connect to the BrainAccess Halo headset.
+        Connect to the BrainAccess headset using SDK 3.6.0 pattern.
 
         Returns:
             bool: True if connection was successful, False otherwise.
@@ -61,22 +63,37 @@ class EEGHeadset:
             self.logger.info("Already connected to the headset.")
             return True
 
-        from eeg_config import PORT, USED_DEVICE
-        self.logger.info(f"Attempting to connect to BrainAccess Halo on port {PORT}...")
+        from eeg_config import DEVICE_NAME, USED_DEVICE, SAMPLING_RATE
+
+        self.logger.info(f"Attempting to connect to BrainAccess device: {DEVICE_NAME}...")
+        self.logger.info(f"Sampling frequency: {SAMPLING_RATE} Hz")
 
         while self._connection_attempts < self._max_attempts:
             try:
+                # SDK 3.6.0: Create EEGManager instance (will be used as context manager internally)
                 self._eeg_manager = self.EEGManager()
                 self._eeg_acquisition = self.acquisition.EEG()
 
-                # Connect to the headset
-                from eeg_config import DEVICE_NAME
-                self._eeg_acquisition.setup(self._eeg_manager, device_name=DEVICE_NAME, cap=USED_DEVICE)
+                # SDK 3.6.0: setup() scans, connects and configures channels
+                # Pass sfreq parameter to set sampling frequency to 250 Hz
+                self._eeg_acquisition.setup(
+                    self._eeg_manager,
+                    device_name=DEVICE_NAME,
+                    cap=USED_DEVICE,
+                    sfreq=SAMPLING_RATE  # 250 Hz as per eeg_config.py
+                )
 
-                # Check connection
+                # Check connection status
                 if self._eeg_manager.is_connected():
                     self._is_connected = True
-                    self.logger.info("Successfully connected to BrainAccess Halo!")
+                    # Log battery info
+                    try:
+                        battery_info = self._eeg_manager.get_battery_info()
+                        self.logger.info(f"Battery level: {battery_info.level}%")
+                    except Exception as e:
+                        self.logger.warning(f"Could not get battery info: {e}")
+                    
+                    self.logger.info("Successfully connected to BrainAccess device!")
                     return True
 
             except Exception as e:
@@ -84,19 +101,42 @@ class EEGHeadset:
                 self.logger.warning(
                     f"Connection attempt {self._connection_attempts} failed: {str(e)}"
                 )
-                self.logger.info(f"Retrying in {self._connection_attempts} seconds...")
-                time.sleep(self._connection_attempts)
+                # Clean up failed connection attempt
+                self._cleanup_connection()
+                
+                if self._connection_attempts < self._max_attempts:
+                    self.logger.info(f"Retrying in {self._connection_attempts} seconds...")
+                    time.sleep(self._connection_attempts)
 
         self.logger.error("Failed to connect to the headset after multiple attempts.")
         self.logger.error("Please check that:")
         self.logger.error("1. The device is turned on and charged")
         self.logger.error("2. The device is within Bluetooth range")
-        self.logger.error("3. The port configuration is correct")
+        self.logger.error(f"3. The device name '{DEVICE_NAME}' is correct")
         return False
+
+    def _cleanup_connection(self) -> None:
+        """Clean up connection resources after a failed attempt."""
+        try:
+            if self._eeg_acquisition is not None:
+                try:
+                    self._eeg_acquisition.close()
+                except:
+                    pass
+                self._eeg_acquisition = None
+            
+            if self._eeg_manager is not None:
+                try:
+                    self._eeg_manager.disconnect()
+                except:
+                    pass
+                self._eeg_manager = None
+        except:
+            pass
 
     def disconnect(self) -> None:
         """
-        Disconnect from the BrainAccess Halo headset.
+        Disconnect from the BrainAccess headset (SDK 3.6.0 pattern).
         """
         if not self._is_connected:
             self.logger.info("Not connected to any headset.")
@@ -107,7 +147,7 @@ class EEGHeadset:
 
         try:
             # Stop acquisition if it's running
-            if hasattr(self, '_eeg_acquisition') and self._eeg_acquisition is not None:
+            if self._eeg_acquisition is not None:
                 try:
                     self._eeg_acquisition.stop_acquisition()
                 except:
@@ -116,13 +156,19 @@ class EEGHeadset:
                     self._eeg_acquisition.close()
                 except:
                     pass  # Clean up as much as possible
+                self._eeg_acquisition = None
 
-            # Disconnect the manager
-            if hasattr(self, '_eeg_manager') and self._eeg_manager is not None:
-                self._eeg_manager.disconnect()
+            # Disconnect the manager (SDK 3.6.0)
+            if self._eeg_manager is not None:
+                try:
+                    self._eeg_manager.disconnect()
+                except:
+                    pass
+                self._eeg_manager = None
 
             self._is_connected = False
-            self.logger.info("Disconnected from BrainAccess Halo.")
+            self._connection_attempts = 0  # Reset for potential reconnection
+            self.logger.info("Disconnected from BrainAccess device.")
         except Exception as e:
             self.logger.error(f"Error disconnecting from the headset: {str(e)}")
 

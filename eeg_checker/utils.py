@@ -38,22 +38,34 @@ CHANNELS = [
     "PO3",
 ]
 
-VOLTS_IN_MICROVOLT = 10**-6
-LOWPASS_FREQUENCY = 1
-HIGHPASS_FREQUENCY = 50
+HIGHPASS_FREQUENCY = 1  # Removes DC offset and slow drifts
+LOWPASS_FREQUENCY = 40  # Removes high frequency noise (BrainAccess recommends 1-40 Hz)
 SAMPLING_FREQUENCY = 250
 MAX_FREQUENCY = SAMPLING_FREQUENCY // 2
-BANDSTOP_FREQUENCY = np.arange(50, MAX_FREQUENCY, 50)
 
 
-def preprocess_data(file_to_check):
-    data_path = Path.cwd().parent / "data" / file_to_check
-    raw_data = mne.io.read_raw_fif(data_path)
-    raw_data.load_data()
-
-    raw_data.pick(CHANNELS)
-    raw_data.apply_function(fun=lambda x: x * VOLTS_IN_MICROVOLT)
-    raw_data.filter(l_freq=LOWPASS_FREQUENCY, h_freq=HIGHPASS_FREQUENCY)
-    raw_data.notch_filter(BANDSTOP_FREQUENCY)
-
+def preprocess_data(file_to_check, apply_filter=True):
+    """Load and preprocess EEG data from a FIF file.
+    
+    Args:
+        file_to_check: Path to the FIF file (relative to data folder or absolute)
+        apply_filter: Whether to apply bandpass filtering (default: True)
+    
+    Returns:
+        MNE Raw object with preprocessed data
+    """
+    # Handle both relative and absolute paths
+    file_path = Path(file_to_check)
+    if not file_path.is_absolute():
+        file_path = Path.cwd().parent / "data" / file_to_check
+    
+    raw_data = mne.io.read_raw_fif(file_path, preload=True, verbose=False)
+    
+    # Pick only EEG channels (exclude misc, syst channels)
+    raw_data.pick(CHANNELS, verbose=False)
+    
+    if apply_filter:
+        # Apply bandpass filter: as recommended by BrainAccess (1-40 Hz)
+        raw_data.filter(l_freq=HIGHPASS_FREQUENCY, h_freq=LOWPASS_FREQUENCY, verbose=False)
+    
     return raw_data
