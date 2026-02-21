@@ -37,7 +37,7 @@ BRAINACCESS_HALO_4_CHANNEL = {idx: channel for idx, channel in enumerate(channel
 
 
 # Device name - find on the back of your BrainAccess device (e.g., "BA MAXI 012", "BA HALO 001")
-DEVICE_NAME = "BA MAXI 012"
+DEVICE_NAME = "BA MAXI 009"
 
 # Note: PORT is no longer needed in SDK 3.6.0 - device discovery is handled automatically
 PORT = "/dev/rfcomm0"  # Deprecated - kept for backwards compatibility
