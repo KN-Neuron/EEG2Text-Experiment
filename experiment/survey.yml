@@ -1,4 +1,0 @@
-- type: text
-  key: participant_id
-  label: Participant ID
-  required: true

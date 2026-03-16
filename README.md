@@ -1,5 +1,35 @@
 # Experiment
 
+```bash
+# odpalanie projektu
+# Szybki test z mniejszą liczbą trialli
+./run.sh --words 3 --repeats 2 --beeps 3 --sentences 2
+
+# Approach 1 (czytanie + spacja)
+./run.sh --approach1 --words 5 --repeats 3
+
+# Fullscreen (produkcja)
+./run.sh --fullscreen --words 100 --repeats 20 --sentences 20
+
+# Fullscreen z prawdziwym EEG
+./run.sh --fullscreen --real-eeg --words 100 --repeats 20
+```
+
+
+```
+# Approach 2 (beep) z mock EEG — domyślne parametry
+python main.py --mock-eeg
+
+# Approach 1 (czytanie + spacja)
+python main.py --approach1 --mock-eeg
+
+# Custom: 50 słów, 10 powtórzeń, 5 beepów co 2s, zdania w trybie full
+python main.py --words 50 --repeats 10 --beeps 5 --beep-interval 2.0 --sentence-mode full --mock-eeg
+
+# Debug mode
+python main.py --mock-eeg --debug
+```
+
 BrainAccess SDK needs to be installed manually and is not included in Poetry dependencies.
 
 For runtime config, modify constants in _main.py_:
@@ -15,7 +45,9 @@ For advanced config, modify constants in _src/constants.py_.
 
 ```
 pip install -r requirements.txt
-pip install BrainAccessSDK/python_api #if you're on windows
+pip install BrainAccessSDK-linux/python_api #if you're on linux
+# W terminalu przed uruchomieniem:
+export LD_LIBRARY_PATH=/ścieżka/do/EEG2Text-Experiment/BrainAccessSDK-linux:$LD_LIBRARY_PATH
 python3 main.py
 ```
 

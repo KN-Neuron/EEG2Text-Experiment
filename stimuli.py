@@ -1,125 +1,184 @@
-# stimuli.py - WERSJA POPRAWIONA z kategorią WYOBRAŹNIA
+# stimuli.py - Wersja dla single-word paradigm
+# Ładuje słowa i zdania z pliku zdania.txt
 
-import json
-import random
-from pathlib import Path
-from dataclasses import dataclass
-from typing import List, Optional
 import logging
+import random
+import re
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import List, Optional, Tuple
 
 
 @dataclass
-class Sentence:
-    text: str
-    category: str
-    question: Optional[str] = None
-    options: Optional[List[str]] = None
-    correct_answer_index: Optional[int] = None
-    audio_path: Optional[str] = None
+class WordTrial:
+    """Pojedynczy trial słowny."""
+
+    word: str
+    word_index: int  # Indeks słowa w liście unikalnych słów
+    repetition: int  # Która to powtórka (1..K)
+    trial_index: int = 0  # Globalny indeks trialu (ustawiany po shuffle)
+
+
+@dataclass
+class SentenceTrial:
+    """Pojedynczy trial zdaniowy (test)."""
+
+    sentence: str
+    words: List[str]
+    sentence_index: int
 
 
 class StimulusManager:
-    def __init__(self, logger: logging.Logger, debug_mode: bool = False):
+    """Zarządza słowami i zdaniami dla eksperymentu EEG2Text."""
+
+    def __init__(
+        self,
+        logger: logging.Logger,
+        words_file: str = "zdania.txt",
+        sentences_file: str = "zdania.txt",
+    ):
         self.logger = logger
-        self.debug_mode = debug_mode
-        self.assets_dir = Path("src/assets")
-        self.assets_dir.mkdir(exist_ok=True)
+        self.words_file = Path(words_file)
+        self.sentences_file = Path(sentences_file)
 
-        # Wczytuje wszystkie kategorie zdań
-        self.all_sentences = {
-            'normal': self._load_sentences('normal_sentences.json', 'normal'),
-            'imagination': self._load_sentences('sentiment_sentences.json', 'imagination'),
-        }
+        self.all_words: List[str] = []
+        self.all_sentences: List[str] = []
 
-        # Tworzy kategorię 'listening' bazując na zdaniach 'normal'
-        self.all_sentences['listening'] = [
-            Sentence(
-                text=s.text,
-                category='listening',
-                audio_path=s.audio_path
-            )
-            for s in self.all_sentences['normal']
-        ]
+        self._load_data()
 
-        # Tasuje wszystkie kategorie
-        for category in self.all_sentences:
-            random.shuffle(self.all_sentences[category])
+    def _load_data(self):
+        """Ładuje słowa i zdania z pliku zdania.txt."""
+        if not self.words_file.exists():
+            raise FileNotFoundError(f"Nie znaleziono pliku: {self.words_file}")
 
-        self.current_index = {
-            'normal': 0,
-            'imagination': 0,
-            'listening': 0
-        }
-        self.used_sentences: List[Sentence] = []
-        self.presented_normal_sentences: List[Sentence] = []
+        content = self.words_file.read_text(encoding="utf-8")
 
-        self.logger.info(f"Loaded stimuli:")
-        for cat, sentences in self.all_sentences.items():
-            self.logger.info(f"  {cat}: {len(sentences)} sentences")
+        self.all_sentences = self._parse_sentences(content)
+        self.logger.info(
+            f"Załadowano {len(self.all_sentences)} zdań z {self.words_file}"
+        )
 
-    def _load_sentences(self, filename: str, category: str) -> List[Sentence]:
-        filepath = self.assets_dir / filename
-        if not filepath.exists():
-            self.logger.warning(f"File not found: {filepath}, creating example file")
-        try:
-            with open(filepath, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            return [Sentence(category=category, **item) for item in data]
-        except (json.JSONDecodeError, TypeError) as e:
-            self.logger.error(f"Error loading or parsing {filepath}: {e}")
-            self._create_example_file(filepath, category)
-            with open(filepath, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            return [Sentence(category=category, **item) for item in data]
+        self.all_words = self._parse_words(content)
+        self.logger.info(f"Załadowano {len(self.all_words)} słów z {self.words_file}")
 
-    def get_sentences(self, category: str, count: int,
-                      is_trial: bool = False) -> List[Sentence]:
-        available = self.all_sentences.get(category, [])
-        if not available:
-            self.logger.error(f"No sentences available for category: {category}")
-            return []
+    def _parse_sentences(self, content: str) -> List[str]:
+        """Parsuje zdania z pliku (format: '  1. Mama daje kwiat tu.')"""
+        sentences = []
+        in_sentences = False
 
-        if is_trial:
-            return available[:count]
+        for line in content.split("\n"):
+            line = line.strip()
 
-        start_idx = self.current_index[category]
-        end_idx = start_idx + count
+            if "PROSTYCH ZDAŃ" in line or "ZDAŃ W JĘZYKU" in line:
+                in_sentences = True
+                continue
 
-        if end_idx > len(available):
-            self.logger.warning(f"Not enough unique {category} sentences, wrapping around.")
-            random.shuffle(available)
-            start_idx = 0
-            end_idx = count
-            self.current_index[category] = 0
+            if "LISTA UŻYTYCH SŁÓW" in line:
+                break
 
-        sentences = available[start_idx:end_idx]
-        self.current_index[category] = end_idx
+            if line.startswith("===") or not line:
+                continue
 
-        if not is_trial:
-            self.used_sentences.extend(sentences)
-            if category == 'normal':
-                self.presented_normal_sentences.extend(sentences)
+            if in_sentences:
+                match = re.match(r"\d+\.\s+(.+)", line)
+                if match:
+                    sentences.append(match.group(1).strip())
 
         return sentences
 
-    def get_sentences_for_listening(self, count: int) -> List[Sentence]:
-        if not self.presented_normal_sentences:
-            self.logger.warning(
-                "No sentences from 'normal' block have been presented yet. Using random listening sentences.")
-            return self.get_sentences('listening', count)
+    def _parse_words(self, content: str) -> List[str]:
+        """Parsuje listę słów z pliku (format: '  1. ale')"""
+        words = []
+        in_words = False
 
-        num_to_sample = min(count, len(self.presented_normal_sentences))
-        sampled_sentences = random.sample(self.presented_normal_sentences, num_to_sample)
+        for line in content.split("\n"):
+            line = line.strip()
 
-        return [
-            Sentence(text=s.text, category='listening', audio_path=s.audio_path)
-            for s in sampled_sentences
-        ]
+            if "LISTA UŻYTYCH SŁÓW" in line:
+                in_words = True
+                continue
 
-    def get_memory_sentences(self, count: int) -> List[Sentence]:
-        if not self.used_sentences:
-            return []
+            if in_words:
+                if line.startswith("===") or not line or line.startswith("✓"):
+                    continue
 
-        unique_used_sentences = list({s.text: s for s in self.used_sentences}.values())
-        num_to_sample = min(count, len(unique_used_sentences))
-        return random.sample(unique_used_sentences, num_to_sample)
+                match = re.match(r"\d+\.\s+(.+)", line)
+                if match:
+                    words.append(match.group(1).strip())
+
+        return words
+
+    def get_word_trials(self, n_words: int, k_repeats: int) -> List[WordTrial]:
+        """
+        Generuje listę trialli słownych.
+
+        Args:
+            n_words: Ile unikalnych słów (max len(self.all_words))
+            k_repeats: Ile powtórzeń każdego słowa
+
+        Returns:
+            Zshufflowana lista WordTrial (N * K elementów)
+        """
+        n_words = min(n_words, len(self.all_words))
+
+        selected_words = random.sample(self.all_words, n_words)
+        self.logger.info(
+            f"Wybrano {n_words} słów, {k_repeats} powtórzeń = {n_words * k_repeats} trialli"
+        )
+
+        trials = []
+        for word_idx, word in enumerate(selected_words):
+            for rep in range(1, k_repeats + 1):
+                trials.append(WordTrial(word=word, word_index=word_idx, repetition=rep))
+
+        random.shuffle(trials)
+
+        for i, trial in enumerate(trials):
+            trial.trial_index = i
+
+        self.logger.info(
+            f"Wygenerowano {len(trials)} trialli słownych (zshufflowanych)"
+        )
+        return trials
+
+    def get_sentence_trials(
+        self, m_sentences: int, used_words: Optional[List[str]] = None
+    ) -> List[SentenceTrial]:
+        """
+        Losuje M zdań testowych.
+
+        Args:
+            m_sentences: Ile zdań
+            used_words: Opcjonalnie filtruj zdania zawierające te słowa
+
+        Returns:
+            Lista SentenceTrial
+        """
+        available = self.all_sentences.copy()
+
+        if used_words:
+            used_set = set(w.lower() for w in used_words)
+            filtered = [
+                s
+                for s in available
+                if any(w.lower() in used_set for w in s.replace(".", "").split())
+            ]
+            if len(filtered) >= m_sentences:
+                available = filtered
+                self.logger.info(
+                    f"Przefiltrowano do {len(available)} zdań zawierających słowa z sesji"
+                )
+
+        m_sentences = min(m_sentences, len(available))
+        selected = random.sample(available, m_sentences)
+
+        trials = []
+        for i, sentence in enumerate(selected):
+            words = sentence.replace(".", "").split()
+            trials.append(
+                SentenceTrial(sentence=sentence, words=words, sentence_index=i)
+            )
+
+        self.logger.info(f"Wygenerowano {len(trials)} zdań testowych")
+        return trials
+

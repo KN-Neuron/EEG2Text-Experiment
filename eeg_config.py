@@ -36,9 +36,13 @@ channels = [
 BRAINACCESS_HALO_4_CHANNEL = {idx: channel for idx, channel in enumerate(channels)}
 
 
-DEVICE_NAME = "BA MAXI 012"  # Common name for BrainAccess Halo headset, change if your device has a different name
-PORT = "/dev/rfcomm0"
+# Device name - find on the back of your BrainAccess device (e.g., "BA MAXI 012", "BA HALO 001")
+DEVICE_NAME = "BA MAXI 012"
 
+# Note: PORT is no longer needed in SDK 3.6.0 - device discovery is handled automatically
+PORT = "/dev/rfcomm0"  # Deprecated - kept for backwards compatibility
+
+# Sampling rate in Hz (SDK 3.6.0 supports setting via sfreq parameter in setup())
 SAMPLING_RATE = 250
 
 DATA_FOLDER_PATH = "eeg_data"

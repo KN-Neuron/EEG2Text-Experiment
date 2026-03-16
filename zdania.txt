@@ -1,0 +1,910 @@
+==============================================================
+       800 PROSTYCH ZDAŃ W JĘZYKU POLSKIM
+==============================================================
+
+  1. Mama daje kwiat tu.
+  2. Oni jedzą obiad razem.
+  3. Ta kawa jest tu.
+  4. Każdy dom jest duży.
+  5. Ta książka jest tam.
+  6. Mama kupuje mleko dziś.
+  7. Oni lubią dom razem.
+  8. Tata ma duży dom.
+  9. Oni mają mały ogród.
+ 10. Pies niesie kwiat tam.
+ 11. Oni piją mleko dziś.
+ 12. Mama robi obiad teraz.
+ 13. Ta ręka jest tu.
+ 14. Ta szkoła jest tam.
+ 15. Kolega widzi dom tam.
+ 16. Ta woda jest tu.
+ 17. Mama zawsze czyta tam.
+ 18. Ona zna ten sklep.
+ 19. On zna ten dom.
+ 20. Mama biegnie bardzo późno.
+ 21. Tata idzie bardzo wcześnie.
+ 22. Kot siedzi sam tam.
+ 23. Pies śpi bardzo dobrze.
+ 24. Mama mówi bardzo źle.
+ 25. Kolega woła dziecko tam.
+ 26. Tata wraca na dom.
+ 27. Mama idzie na sklep.
+ 28. On biegnie znowu tu.
+ 29. Dziecko je chleb i mleko.
+ 30. Ona pije kawę i wodę.
+ 31. Kolega ma auto i dom.
+ 32. Mama niesie wodę tam.
+ 33. On kupuje książkę dziś.
+ 34. Ona daje rękę tam.
+ 35. Tata zna szkołę dziś.
+ 36. On kupuje auto dziś.
+ 37. Ona lubi wodę bardzo.
+ 38. Dziś mama idzie tam.
+ 39. Mama też idzie tam.
+ 40. Kolega tylko je chleb.
+ 41. Tata idzie na miasto.
+ 42. Pies śpi sam tu.
+ 43. Ona czyta książkę dziś.
+ 44. Dziś oni jedzą obiad.
+ 45. Kolega ma krzesło tu.
+ 46. Mama widzi okno tam.
+ 47. Tata widzi drzewo tam.
+ 48. On lubi miasto bardzo.
+ 49. Mama zna szkołę już.
+ 50. On idzie ale wraca.
+ 51. Mama śpi ale mówi.
+ 52. Tata jest bardzo duży.
+ 53. Tata nie jest duży.
+ 54. Ten tata jest duży.
+ 55. Tata jest duży ale mały.
+ 56. Duży dom jest mały.
+ 57. Mama nigdy nie idzie.
+ 58. Mama zawsze idzie tu.
+ 59. Mama idzie bardzo dobrze.
+ 60. Dziś mama idzie tu.
+ 61. Mama je chleb tu.
+ 62. Mama tylko je chleb.
+ 63. Mama je chleb i mleko.
+ 64. Oni są tu dziś.
+ 65. Oni jedzą chleb dziś.
+ 66. Oni mają duży dom.
+ 67. Dziś oni jedzą chleb.
+ 68. Ta mama idzie tu.
+ 69. Tata jest też duży.
+ 70. Tata jest bardzo mały.
+ 71. Tata nie jest mały.
+ 72. Ten tata jest mały.
+ 73. Tata jest duży ale dobry.
+ 74. Duży dom jest dobry.
+ 75. Mama nigdy nie siedzi.
+ 76. Mama zawsze idzie tam.
+ 77. Mama idzie bardzo źle.
+ 78. Mama je chleb tam.
+ 79. Mama tylko je obiad.
+ 80. Mama idzie na obiad.
+ 81. Mama je obiad i chleb.
+ 82. Oni są tu teraz.
+ 83. Oni jedzą chleb teraz.
+ 84. Oni mają duży ogród.
+ 85. Ta mama idzie tam.
+ 86. Tata jest też mały.
+ 87. Tata jest bardzo dobry.
+ 88. Tata nie jest dobry.
+ 89. Ten tata jest dobry.
+ 90. Tata jest duży ale zły.
+ 91. Duży dom jest zły.
+ 92. Mama nigdy nie śpi.
+ 93. Mama zawsze siedzi tu.
+ 94. Mama idzie sam tu.
+ 95. Dziś mama siedzi tu.
+ 96. Mama je chleb dziś.
+ 97. Mama tylko je mleko.
+ 98. Mama idzie na dom.
+ 99. Mama pije kawę i wodę.
+100. Oni są tu już.
+101. Oni jedzą chleb tam.
+102. Oni mają duży auto.
+103. Dziś oni jedzą mleko.
+104. Ta mama idzie dziś.
+105. Tata jest też dobry.
+106. Tata jest bardzo zły.
+107. Tata nie jest zły.
+108. Ten tata jest zły.
+109. Tata jest duży ale piękny.
+110. Duży dom jest piękny.
+111. Mama nigdy nie biegnie.
+112. Mama zawsze siedzi tam.
+113. Mama idzie sam tam.
+114. Dziś mama siedzi tam.
+115. Mama je chleb teraz.
+116. Mama tylko pije mleko.
+117. Mama idzie na ogród.
+118. Mama pije mleko i kawę.
+119. Oni są tam dziś.
+120. Oni jedzą chleb tu.
+121. Oni mają duży stół.
+122. Dziś oni piją mleko.
+123. Ta mama idzie teraz.
+124. Tata jest też zły.
+125. Tata jest bardzo piękny.
+126. Tata nie jest piękny.
+127. Ten tata jest piękny.
+128. Tata jest duży ale nowy.
+129. Duży dom jest nowy.
+130. Mama nigdy nie czyta.
+131. Mama zawsze śpi tu.
+132. Mama idzie znowu tu.
+133. Dziś mama śpi tu.
+134. Mama je chleb już.
+135. Mama tylko pije kawę.
+136. Mama idzie na miasto.
+137. Mama lubi dom i ogród.
+138. Oni są tam teraz.
+139. Oni jedzą chleb razem.
+140. Oni mają mały dom.
+141. Dziś oni piją kawę.
+142. Ta mama idzie już.
+143. Tata jest też piękny.
+144. Tata jest bardzo nowy.
+145. Tata nie jest nowy.
+146. Ten tata jest nowy.
+147. Tata jest duży ale stary.
+148. Duży dom jest stary.
+149. Mama nigdy nie mówi.
+150. Mama zawsze śpi tam.
+151. Mama idzie znowu tam.
+152. Dziś mama śpi tam.
+153. Mama je chleb razem.
+154. Mama tylko pije wodę.
+155. Mama wraca na sklep.
+156. Mama lubi kwiat i słońce.
+157. Oni są tam już.
+158. Oni jedzą chleb znowu.
+159. Dziś oni piją wodę.
+160. Ta mama siedzi tu.
+161. Tata jest też nowy.
+162. Tata jest bardzo stary.
+163. Tata nie jest stary.
+164. Ten tata jest stary.
+165. Tata jest duży ale szybki.
+166. Duży dom jest szybki.
+167. Mama nigdy nie wraca.
+168. Mama zawsze biegnie tu.
+169. Mama idzie wcześnie tu.
+170. Dziś mama biegnie tu.
+171. Mama je chleb znowu.
+172. Mama tylko lubi dom.
+173. Mama wraca na obiad.
+174. Mama ma dom i ogród.
+175. Oni nie są już.
+176. Oni jedzą obiad dziś.
+177. Oni mają mały auto.
+178. Dziś oni lubią dom.
+179. Ta mama siedzi tam.
+180. Tata jest też stary.
+181. Tata jest bardzo szybki.
+182. Tata nie jest szybki.
+183. Ten tata jest szybki.
+184. Tata jest duży ale ciepły.
+185. Duży dom jest ciepły.
+186. Mama nigdy nie woła.
+187. Mama zawsze biegnie tam.
+188. Mama idzie późno tam.
+189. Dziś mama biegnie tam.
+190. Mama je chleb też.
+191. Mama tylko lubi ogród.
+192. Mama wraca na dom.
+193. Mama ma stół i krzesło.
+194. Oni są razem dziś.
+195. Oni jedzą obiad teraz.
+196. Oni mają mały stół.
+197. Dziś oni lubią ogród.
+198. Ta mama siedzi dziś.
+199. Tata jest też szybki.
+200. Tata jest bardzo ciepły.
+201. Tata nie jest ciepły.
+202. Ten tata jest ciepły.
+203. Tata jest duży ale zimny.
+204. Duży dom jest zimny.
+205. Tata nigdy nie idzie.
+206. Mama zawsze czyta tu.
+207. Mama idzie późno tu.
+208. Dziś mama czyta tu.
+209. Mama je obiad tu.
+210. Mama tylko lubi kawę.
+211. Mama wraca na ogród.
+212. Mama daje chleb i mleko.
+213. Oni są razem tam.
+214. Oni jedzą obiad tam.
+215. Oni mają dobry dom.
+216. Dziś oni lubią kawę.
+217. Ta mama siedzi teraz.
+218. Tata jest też ciepły.
+219. Tata jest bardzo zimny.
+220. Tata nie jest zimny.
+221. Ten tata jest zimny.
+222. Tata jest duży ale biały.
+223. Duży dom jest biały.
+224. Tata nigdy nie siedzi.
+225. Mama idzie wcześnie tam.
+226. Dziś mama czyta tam.
+227. Mama je obiad tam.
+228. Mama tylko lubi chleb.
+229. Mama wraca na miasto.
+230. Mama daje kawę i wodę.
+231. Oni są bardzo dobrze.
+232. Oni jedzą obiad tu.
+233. Oni mają dobry ogród.
+234. Dziś oni lubią chleb.
+235. Ta mama siedzi już.
+236. Tata jest też zimny.
+237. Tata jest bardzo biały.
+238. Tata nie jest biały.
+239. Ten tata jest biały.
+240. Tata jest duży ale czarny.
+241. Duży dom jest czarny.
+242. Tata nigdy nie śpi.
+243. Mama zawsze mówi tu.
+244. Mama siedzi bardzo dobrze.
+245. Dziś mama mówi tu.
+246. Mama je obiad dziś.
+247. Mama tylko lubi kwiat.
+248. Tata idzie na sklep.
+249. Mama kupuje kwiat i książkę.
+250. Oni są bardzo źle.
+251. Oni mają dobry auto.
+252. Dziś oni lubią kwiat.
+253. Ta mama śpi tu.
+254. Tata jest też biały.
+255. Tata jest bardzo czarny.
+256. Tata nie jest czarny.
+257. Ten tata jest czarny.
+258. Tata jest duży ale czerwony.
+259. Duży dom jest czerwony.
+260. Tata nigdy nie biegnie.
+261. Mama zawsze mówi tam.
+262. Mama siedzi bardzo źle.
+263. Dziś mama mówi tam.
+264. Mama je obiad teraz.
+265. Mama tylko lubi słońce.
+266. Tata idzie na obiad.
+267. Mama kupuje chleb i mleko.
+268. Oni idą tu dziś.
+269. Oni jedzą obiad znowu.
+270. Oni mają dobry stół.
+271. Dziś oni lubią słońce.
+272. Ta mama śpi tam.
+273. Tata jest też czarny.
+274. Tata jest bardzo czerwony.
+275. Tata nie jest czerwony.
+276. Ten tata jest czerwony.
+277. Tata jest duży ale zielony.
+278. Duży dom jest zielony.
+279. Tata nigdy nie czyta.
+280. Mama zawsze wraca tu.
+281. Mama siedzi sam tu.
+282. Dziś mama wraca tu.
+283. Mama je obiad już.
+284. Mama tylko lubi wieczór.
+285. Tata idzie na dom.
+286. Mama niesie chleb i mleko.
+287. Oni idą tu teraz.
+288. Oni jedzą mleko dziś.
+289. Oni mają zły dom.
+290. Dziś oni lubią wieczór.
+291. Ta mama śpi dziś.
+292. Tata jest też czerwony.
+293. Tata jest bardzo zielony.
+294. Tata nie jest zielony.
+295. Ten tata jest zielony.
+296. Tata jest duży ale wysoki.
+297. Duży dom jest wysoki.
+298. Tata nigdy nie mówi.
+299. Mama zawsze wraca tam.
+300. Mama siedzi sam tam.
+301. Dziś mama wraca tam.
+302. Mama je obiad razem.
+303. Mama tylko lubi mleko.
+304. Tata idzie na ogród.
+305. Mama widzi dom i ogród.
+306. Oni idą tu już.
+307. Oni jedzą mleko teraz.
+308. Oni mają zły ogród.
+309. Dziś oni lubią mleko.
+310. Ta mama śpi teraz.
+311. Tata jest też zielony.
+312. Tata jest bardzo wysoki.
+313. Tata nie jest wysoki.
+314. Ten tata jest wysoki.
+315. Tata jest duży ale niski.
+316. Duży dom jest niski.
+317. Tata nigdy nie wraca.
+318. Mama zawsze woła tu.
+319. Mama siedzi znowu tu.
+320. Dziś mama woła tu.
+321. Mama je obiad znowu.
+322. Mama tylko kupuje chleb.
+323. Mama widzi kwiat i drzewo.
+324. Oni idą tam dziś.
+325. Oni jedzą mleko tam.
+326. Oni mają zły auto.
+327. Dziś oni mają dom.
+328. Ta mama śpi już.
+329. Tata jest też wysoki.
+330. Tata jest bardzo niski.
+331. Tata nie jest niski.
+332. Ten tata jest niski.
+333. Tata jest mały ale duży.
+334. Duży kot jest mały.
+335. Tata nigdy nie woła.
+336. Mama zawsze woła tam.
+337. Mama siedzi znowu tam.
+338. Dziś mama woła tam.
+339. Mama je obiad też.
+340. Mama tylko kupuje mleko.
+341. Tata wraca na sklep.
+342. Tata je chleb i mleko.
+343. Oni idą tam teraz.
+344. Oni jedzą mleko tu.
+345. Oni mają zły stół.
+346. Dziś oni mają ogród.
+347. Ta mama biegnie tu.
+348. Tata jest też niski.
+349. Kolega jest bardzo duży.
+350. Kolega nie jest duży.
+351. Ten kolega jest duży.
+352. Tata jest mały ale dobry.
+353. Duży kot jest dobry.
+354. Kolega nigdy nie idzie.
+355. Tata zawsze idzie tu.
+356. Mama siedzi wcześnie tu.
+357. Dziś tata idzie tu.
+358. Mama je mleko tu.
+359. Mama tylko kupuje kawę.
+360. Tata wraca na obiad.
+361. Tata je obiad i chleb.
+362. Oni idą tam już.
+363. Oni jedzą mleko razem.
+364. Oni mają piękny dom.
+365. Dziś oni mają stół.
+366. Ta mama biegnie tam.
+367. Kolega jest też duży.
+368. Kolega jest bardzo mały.
+369. Kolega nie jest mały.
+370. Ten kolega jest mały.
+371. Tata jest mały ale zły.
+372. Duży kot jest zły.
+373. Kolega nigdy nie siedzi.
+374. Tata zawsze idzie tam.
+375. Mama siedzi późno tam.
+376. Dziś tata idzie tam.
+377. Mama je mleko tam.
+378. Mama tylko kupuje kwiat.
+379. Tata pije kawę i wodę.
+380. Oni nie idą już.
+381. Oni jedzą mleko znowu.
+382. Oni mają piękny ogród.
+383. Dziś oni mają auto.
+384. Ta mama biegnie dziś.
+385. Kolega jest też mały.
+386. Kolega jest bardzo dobry.
+387. Kolega nie jest dobry.
+388. Ten kolega jest dobry.
+389. Tata jest mały ale piękny.
+390. Duży kot jest piękny.
+391. Kolega nigdy nie śpi.
+392. Tata zawsze siedzi tu.
+393. Mama siedzi późno tu.
+394. Dziś tata siedzi tu.
+395. Mama je mleko dziś.
+396. Mama tylko kupuje książkę.
+397. Tata wraca na ogród.
+398. Tata pije mleko i kawę.
+399. Oni idą razem dziś.
+400. Oni mają piękny auto.
+401. Dziś oni mają kwiat.
+402. Ta mama biegnie teraz.
+403. Kolega jest też dobry.
+404. Kolega jest bardzo zły.
+405. Kolega nie jest zły.
+406. Ten kolega jest zły.
+407. Tata jest mały ale nowy.
+408. Duży kot jest nowy.
+409. Kolega nigdy nie biegnie.
+410. Tata zawsze siedzi tam.
+411. Mama siedzi wcześnie tam.
+412. Dziś tata siedzi tam.
+413. Mama je mleko teraz.
+414. Mama tylko kupuje auto.
+415. Tata wraca na miasto.
+416. Tata lubi dom i ogród.
+417. Oni idą razem tam.
+418. Oni piją mleko teraz.
+419. Oni mają piękny stół.
+420. Dziś oni mają książkę.
+421. Ta mama biegnie już.
+422. Kolega jest też zły.
+423. Kolega jest bardzo piękny.
+424. Kolega nie jest piękny.
+425. Ten kolega jest piękny.
+426. Tata jest mały ale stary.
+427. Duży kot jest stary.
+428. Kolega nigdy nie czyta.
+429. Tata zawsze śpi tu.
+430. Mama śpi bardzo dobrze.
+431. Dziś tata śpi tu.
+432. Mama je mleko już.
+433. Mama tylko ma dom.
+434. Kolega idzie na sklep.
+435. Tata lubi kwiat i słońce.
+436. Oni idą bardzo dobrze.
+437. Oni piją mleko tam.
+438. Oni mają nowy dom.
+439. Ta mama czyta tu.
+440. Kolega jest też piękny.
+441. Kolega jest bardzo nowy.
+442. Kolega nie jest nowy.
+443. Ten kolega jest nowy.
+444. Tata jest mały ale szybki.
+445. Duży kot jest szybki.
+446. Kolega nigdy nie mówi.
+447. Tata zawsze śpi tam.
+448. Mama śpi bardzo źle.
+449. Dziś tata śpi tam.
+450. Mama je mleko razem.
+451. Mama tylko ma ogród.
+452. Kolega idzie na obiad.
+453. Tata ma dom i ogród.
+454. Oni idą bardzo źle.
+455. Oni piją mleko tu.
+456. Oni mają nowy ogród.
+457. Ta mama czyta tam.
+458. Kolega jest też nowy.
+459. Kolega jest bardzo stary.
+460. Kolega nie jest stary.
+461. Ten kolega jest stary.
+462. Tata jest mały ale ciepły.
+463. Duży kot jest ciepły.
+464. Kolega nigdy nie wraca.
+465. Tata zawsze biegnie tu.
+466. Mama śpi sam tu.
+467. Dziś tata biegnie tu.
+468. Mama je mleko znowu.
+469. Mama tylko ma stół.
+470. Kolega idzie na dom.
+471. Tata ma stół i krzesło.
+472. Oni biegną tu dziś.
+473. Oni piją mleko razem.
+474. Oni mają nowy auto.
+475. Ta mama czyta dziś.
+476. Kolega jest też stary.
+477. Kolega jest bardzo szybki.
+478. Kolega nie jest szybki.
+479. Ten kolega jest szybki.
+480. Tata jest mały ale zimny.
+481. Duży kot jest zimny.
+482. Kolega nigdy nie woła.
+483. Tata zawsze biegnie tam.
+484. Mama śpi sam tam.
+485. Dziś tata biegnie tam.
+486. Mama je mleko też.
+487. Mama tylko ma auto.
+488. Kolega idzie na ogród.
+489. Tata daje chleb i mleko.
+490. Oni biegną tu teraz.
+491. Oni piją mleko znowu.
+492. Oni mają nowy stół.
+493. Ta mama czyta teraz.
+494. Kolega jest też szybki.
+495. Kolega jest bardzo ciepły.
+496. Kolega nie jest ciepły.
+497. Ten kolega jest ciepły.
+498. Tata jest mały ale biały.
+499. Duży kot jest biały.
+500. Dziecko nigdy nie idzie.
+501. Tata zawsze czyta tu.
+502. Mama śpi znowu tu.
+503. Dziś tata czyta tu.
+504. Mama pije mleko tu.
+505. Mama tylko ma kwiat.
+506. Kolega idzie na miasto.
+507. Tata daje kawę i wodę.
+508. Oni biegną tu już.
+509. Oni piją kawę dziś.
+510. Oni mają stary dom.
+511. Ta mama czyta już.
+512. Kolega jest też ciepły.
+513. Kolega jest bardzo zimny.
+514. Kolega nie jest zimny.
+515. Ten kolega jest zimny.
+516. Tata jest mały ale czarny.
+517. Duży kot jest czarny.
+518. Dziecko nigdy nie siedzi.
+519. Tata zawsze czyta tam.
+520. Mama śpi znowu tam.
+521. Dziś tata czyta tam.
+522. Mama pije mleko tam.
+523. Mama tylko ma książkę.
+524. Kolega wraca na sklep.
+525. Tata kupuje kwiat i książkę.
+526. Oni biegną tam dziś.
+527. Oni piją kawę teraz.
+528. Oni mają stary ogród.
+529. Ta mama mówi tu.
+530. Kolega jest też zimny.
+531. Kolega jest bardzo biały.
+532. Kolega nie jest biały.
+533. Ten kolega jest biały.
+534. Tata jest mały ale czerwony.
+535. Duży kot jest czerwony.
+536. Dziecko nigdy nie śpi.
+537. Tata zawsze mówi tu.
+538. Mama śpi wcześnie tu.
+539. Dziś tata mówi tu.
+540. Mama pije mleko dziś.
+541. Mama tylko ma mleko.
+542. Kolega wraca na obiad.
+543. Tata kupuje chleb i mleko.
+544. Oni biegną tam teraz.
+545. Oni piją kawę tam.
+546. Oni mają stary auto.
+547. Ta mama mówi tam.
+548. Kolega jest też biały.
+549. Kolega jest bardzo czarny.
+550. Kolega nie jest czarny.
+551. Ten kolega jest czarny.
+552. Tata jest mały ale zielony.
+553. Duży kot jest zielony.
+554. Dziecko nigdy nie biegnie.
+555. Tata zawsze mówi tam.
+556. Mama śpi późno tam.
+557. Dziś tata mówi tam.
+558. Mama pije mleko teraz.
+559. Mama tylko ma chleb.
+560. Kolega wraca na dom.
+561. Tata niesie chleb i mleko.
+562. Oni biegną tam już.
+563. Oni piją kawę tu.
+564. Oni mają stary stół.
+565. Ta mama mówi dziś.
+566. Kolega jest też czarny.
+567. Kolega jest bardzo czerwony.
+568. Kolega nie jest czerwony.
+569. Ten kolega jest czerwony.
+570. Tata jest mały ale wysoki.
+571. Duży kot jest wysoki.
+572. Dziecko nigdy nie czyta.
+573. Tata zawsze wraca tu.
+574. Mama śpi późno tu.
+575. Dziś tata wraca tu.
+576. Mama pije mleko już.
+577. Mama też je chleb.
+578. Kolega wraca na ogród.
+579. Tata widzi dom i ogród.
+580. Oni nie biegną już.
+581. Oni piją kawę razem.
+582. Oni mają szybki dom.
+583. Ta mama mówi teraz.
+584. Kolega jest też czerwony.
+585. Kolega jest bardzo zielony.
+586. Kolega nie jest zielony.
+587. Ten kolega jest zielony.
+588. Tata jest mały ale niski.
+589. Duży kot jest niski.
+590. Dziecko nigdy nie mówi.
+591. Tata zawsze wraca tam.
+592. Mama śpi wcześnie tam.
+593. Dziś tata wraca tam.
+594. Mama pije mleko razem.
+595. Mama też je obiad.
+596. Kolega wraca na miasto.
+597. Tata widzi kwiat i drzewo.
+598. Oni biegną razem dziś.
+599. Oni piją kawę znowu.
+600. Oni mają szybki ogród.
+601. Ta mama mówi już.
+602. Kolega jest też zielony.
+603. Kolega jest bardzo wysoki.
+604. Kolega nie jest wysoki.
+605. Ten kolega jest wysoki.
+606. Tata jest dobry ale duży.
+607. Duży pies jest mały.
+608. Dziecko nigdy nie wraca.
+609. Tata zawsze woła tu.
+610. Mama biegnie bardzo dobrze.
+611. Dziś tata woła tu.
+612. Mama pije mleko znowu.
+613. Mama też je mleko.
+614. Dziecko idzie na sklep.
+615. Kolega je chleb i mleko.
+616. Oni biegną razem tam.
+617. Oni piją wodę dziś.
+618. Oni mają szybki auto.
+619. Ta mama wraca tu.
+620. Kolega jest też wysoki.
+621. Kolega jest bardzo niski.
+622. Kolega nie jest niski.
+623. Ten kolega jest niski.
+624. Tata jest dobry ale mały.
+625. Duży pies jest dobry.
+626. Dziecko nigdy nie woła.
+627. Tata zawsze woła tam.
+628. Mama biegnie bardzo źle.
+629. Dziś tata woła tam.
+630. Mama pije mleko też.
+631. Mama też pije mleko.
+632. Dziecko idzie na obiad.
+633. Kolega je obiad i chleb.
+634. Oni biegną bardzo dobrze.
+635. Oni piją wodę teraz.
+636. Oni mają szybki stół.
+637. Ta mama wraca tam.
+638. Kolega jest też niski.
+639. Pies jest bardzo duży.
+640. Pies nie jest duży.
+641. Ten pies jest duży.
+642. Tata jest dobry ale zły.
+643. Duży pies jest zły.
+644. Pies nigdy nie idzie.
+645. Kolega zawsze idzie tu.
+646. Mama biegnie sam tu.
+647. Dziś kolega idzie tu.
+648. Mama pije kawę tu.
+649. Mama też pije kawę.
+650. Dziecko idzie na dom.
+651. Kolega pije kawę i wodę.
+652. Oni biegną bardzo źle.
+653. Oni piją wodę tam.
+654. Oni mają ciepły dom.
+655. Ta mama wraca dziś.
+656. Pies jest też duży.
+657. Pies jest bardzo mały.
+658. Pies nie jest mały.
+659. Ten pies jest mały.
+660. Tata jest dobry ale piękny.
+661. Duży pies jest piękny.
+662. Pies nigdy nie siedzi.
+663. Kolega zawsze idzie tam.
+664. Mama biegnie sam tam.
+665. Dziś kolega idzie tam.
+666. Mama pije kawę tam.
+667. Mama też pije wodę.
+668. Dziecko idzie na ogród.
+669. Kolega pije mleko i kawę.
+670. Oni piją wodę tu.
+671. Oni mają ciepły ogród.
+672. Ta mama wraca teraz.
+673. Pies jest też mały.
+674. Pies jest bardzo dobry.
+675. Pies nie jest dobry.
+676. Ten pies jest dobry.
+677. Tata jest dobry ale nowy.
+678. Duży pies jest nowy.
+679. Pies nigdy nie śpi.
+680. Kolega zawsze siedzi tu.
+681. Mama biegnie znowu tu.
+682. Dziś kolega siedzi tu.
+683. Mama pije kawę dziś.
+684. Mama też lubi dom.
+685. Dziecko idzie na miasto.
+686. Kolega lubi dom i ogród.
+687. Oni piją wodę razem.
+688. Oni mają ciepły auto.
+689. Ta mama wraca już.
+690. Pies jest też dobry.
+691. Pies jest bardzo zły.
+692. Pies nie jest zły.
+693. Ten pies jest zły.
+694. Tata jest dobry ale stary.
+695. Duży pies jest stary.
+696. Pies nigdy nie biegnie.
+697. Kolega zawsze siedzi tam.
+698. Mama biegnie znowu tam.
+699. Dziś kolega siedzi tam.
+700. Mama pije kawę teraz.
+701. Mama też lubi ogród.
+702. Dziecko wraca na sklep.
+703. Kolega lubi kwiat i słońce.
+704. Oni piją wodę znowu.
+705. Oni mają ciepły stół.
+706. Ta mama woła tu.
+707. Pies jest też zły.
+708. Pies jest bardzo piękny.
+709. Pies nie jest piękny.
+710. Ten pies jest piękny.
+711. Tata jest dobry ale szybki.
+712. Duży pies jest szybki.
+713. Pies nigdy nie czyta.
+714. Kolega zawsze śpi tu.
+715. Mama biegnie wcześnie tu.
+716. Dziś kolega śpi tu.
+717. Mama pije kawę już.
+718. Mama też lubi kawę.
+719. Dziecko wraca na obiad.
+720. Kolega ma dom i ogród.
+721. Oni lubią dom dziś.
+722. Oni mają zimny dom.
+723. Ta mama woła tam.
+724. Pies jest też piękny.
+725. Pies jest bardzo nowy.
+726. Pies nie jest nowy.
+727. Ten pies jest nowy.
+728. Tata jest dobry ale ciepły.
+729. Duży pies jest ciepły.
+730. Pies nigdy nie mówi.
+731. Kolega zawsze śpi tam.
+732. Mama biegnie późno tam.
+733. Dziś kolega śpi tam.
+734. Mama pije kawę razem.
+735. Mama też lubi chleb.
+736. Dziecko wraca na dom.
+737. Kolega ma stół i krzesło.
+738. Oni lubią dom teraz.
+739. Oni mają zimny ogród.
+740. Ta mama woła dziś.
+741. Pies jest też nowy.
+742. Pies jest bardzo stary.
+743. Pies nie jest stary.
+744. Ten pies jest stary.
+745. Tata jest dobry ale zimny.
+746. Duży pies jest zimny.
+747. Pies nigdy nie wraca.
+748. Kolega zawsze biegnie tu.
+749. Mama biegnie późno tu.
+750. Dziś kolega biegnie tu.
+751. Mama pije kawę znowu.
+752. Mama też lubi kwiat.
+753. Dziecko wraca na ogród.
+754. Kolega daje chleb i mleko.
+755. Oni lubią dom tam.
+756. Oni mają zimny auto.
+757. Ta mama woła teraz.
+758. Pies jest też stary.
+759. Pies jest bardzo szybki.
+760. Pies nie jest szybki.
+761. Ten pies jest szybki.
+762. Tata jest dobry ale biały.
+763. Duży pies jest biały.
+764. Pies nigdy nie woła.
+765. Kolega zawsze biegnie tam.
+766. Mama biegnie wcześnie tam.
+767. Dziś kolega biegnie tam.
+768. Mama pije kawę też.
+769. Mama też lubi słońce.
+770. Dziecko wraca na miasto.
+771. Kolega daje kawę i wodę.
+772. Oni lubią dom tu.
+773. Oni mają zimny stół.
+774. Ta mama woła już.
+775. Pies jest też szybki.
+776. Pies jest bardzo ciepły.
+777. Pies nie jest ciepły.
+778. Ten pies jest ciepły.
+779. Tata jest dobry ale czarny.
+780. Duży pies jest czarny.
+781. Kot nigdy nie idzie.
+782. Kolega zawsze czyta tu.
+783. Mama czyta bardzo dobrze.
+784. Dziś kolega czyta tu.
+785. Mama pije wodę tu.
+786. Mama też lubi wieczór.
+787. Pies idzie na sklep.
+788. Kolega kupuje kwiat i książkę.
+789. Oni mają biały dom.
+790. Ta mama je chleb.
+791. Pies jest też ciepły.
+792. Pies jest bardzo zimny.
+793. Pies nie jest zimny.
+794. Ten pies jest zimny.
+795. Tata jest dobry ale czerwony.
+796. Duży pies jest czerwony.
+797. Kot nigdy nie siedzi.
+798. Kolega zawsze czyta tam.
+799. Mama czyta bardzo źle.
+800. Dziś kolega czyta tam.
+
+==============================================================
+LISTA UŻYTYCH SŁÓW (100):
+==============================================================
+  1. ale
+  2. auto
+  3. bardzo
+  4. biały
+  5. biegnie
+  6. biegną
+  7. chleb
+  8. ciepły
+  9. czarny
+ 10. czerwony
+ 11. czyta
+ 12. daje
+ 13. dobry
+ 14. dobrze
+ 15. dom
+ 16. drzewo
+ 17. duży
+ 18. dziecko
+ 19. dziś
+ 20. i
+ 21. idzie
+ 22. idą
+ 23. je
+ 24. jedzą
+ 25. jest
+ 26. już
+ 27. kawa
+ 28. kawę
+ 29. każdy
+ 30. kolega
+ 31. kot
+ 32. krzesło
+ 33. książka
+ 34. książkę
+ 35. kupuje
+ 36. kwiat
+ 37. lubi
+ 38. lubią
+ 39. ma
+ 40. mają
+ 41. mama
+ 42. mały
+ 43. miasto
+ 44. mleko
+ 45. mówi
+ 46. na
+ 47. nie
+ 48. niesie
+ 49. nigdy
+ 50. niski
+ 51. nowy
+ 52. obiad
+ 53. ogród
+ 54. okno
+ 55. on
+ 56. ona
+ 57. oni
+ 58. pies
+ 59. pije
+ 60. piją
+ 61. piękny
+ 62. późno
+ 63. razem
+ 64. robi
+ 65. ręka
+ 66. rękę
+ 67. sam
+ 68. siedzi
+ 69. sklep
+ 70. stary
+ 71. stół
+ 72. szkoła
+ 73. szkołę
+ 74. szybki
+ 75. są
+ 76. słońce
+ 77. ta
+ 78. tam
+ 79. tata
+ 80. ten
+ 81. teraz
+ 82. też
+ 83. tu
+ 84. tylko
+ 85. wcześnie
+ 86. widzi
+ 87. wieczór
+ 88. woda
+ 89. wodę
+ 90. woła
+ 91. wraca
+ 92. wysoki
+ 93. zawsze
+ 94. zielony
+ 95. zimny
+ 96. zna
+ 97. znowu
+ 98. zły
+ 99. śpi
+100. źle
+
+✓  Wszystkich 100 słów użytych, żadnych dodatkowych.
